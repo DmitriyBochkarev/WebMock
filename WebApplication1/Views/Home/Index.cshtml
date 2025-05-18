@@ -1,0 +1,285 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mock Service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+        input, select, textarea {
+            padding: 5px;
+            width: 300px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .header-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .header-row input {
+            width: 150px;
+        }
+        .header-row button {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>Настройка заглушечного сервиса</h1>
+    
+    <div class="container">
+        <div class="section">
+            <h2>Настроить новый мок</h2>
+            <div class="form-group">
+                <label for="method">Метод:</label>
+                <select id="method">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="path">Путь:</label>
+                <input type="text" id="path" placeholder="/api/resource">
+            </div>
+            <div class="form-group">
+                <label for="statusCode">Код статуса:</label>
+                <input type="number" id="statusCode" value="200">
+            </div>
+            <div class="form-group">
+                <label for="responseBody">Тело ответа:</label>
+                <textarea id="responseBody" rows="5" placeholder='{ "key": "value" }'></textarea>
+            </div>
+            <div id="headersContainer">
+                <h3>Заголовки</h3>
+                <div id="headers">
+                    <!-- Заголовки будут добавляться здесь -->
+                </div>
+                <button type="button" onclick="addHeader()">Добавить заголовок</button>
+            </div>
+            <button onclick="configureMock()">Настроить мок</button>
+
+        </div>
+        
+        <div class="section">
+            <h2>Текущие моки</h2>
+            <button onclick="refreshMocks()">Обновить</button>
+            <button onclick="clearAllMocks()" style="background-color: #f44336;">Очистить все</button>
+            <table id="mocksTable">
+                <thead>
+                    <tr>
+                        <th>Метод</th>
+                        <th>Путь</th>
+                        <th>Статус</th>
+                        <th>Ответ</th>
+                        <th>Заголовки</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Добавление полей для заголовка
+        function addHeader() {
+            const headersDiv = document.getElementById('headers');
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'header-row';
+            
+            const keyInput = document.createElement('input');
+            keyInput.type = 'text';
+            keyInput.placeholder = 'Имя заголовка';
+            
+            const valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.placeholder = 'Значение заголовка';
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = 'Удалить';
+            removeBtn.onclick = function() {
+                headersDiv.removeChild(headerDiv);
+            };
+            
+            headerDiv.appendChild(keyInput);
+            headerDiv.appendChild(valueInput);
+            headerDiv.appendChild(removeBtn);
+            headersDiv.appendChild(headerDiv);
+        }
+
+        // Настройка нового мока
+        function configureMock() {
+            const method = document.getElementById('method').value;
+            const path = document.getElementById('path').value;
+            const statusCode = parseInt(document.getElementById('statusCode').value);
+            let responseBody = document.getElementById('responseBody').value;
+
+            // Пробуем распарсить как JSON, если не получается - оставляем строкой
+            try {
+                responseBody = JSON.parse(responseBody);
+            } catch (e) {
+                // Оставляем как строку
+            }
+            
+            // Собираем заголовки
+            const headers = {};
+            const headerRows = document.getElementById('headers').children;
+            for (let row of headerRows) {
+                const key = row.children[0].value;
+                const value = row.children[1].value;
+                if (key && value) {
+                    headers[key] = value;
+                }
+            }
+            
+            const mockRequest = {
+                Path: path,
+                Method: method,
+                Response: {
+                    StatusCode: statusCode,
+                    Body: responseBody,
+                    Headers: headers
+                }
+            };
+            
+            fetch('/api/mock/configure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(mockRequest)
+            })
+                .then(response => {
+                    // В функции configureMock()
+                    if (path === "/" || path === "") {
+                        alert("Нельзя настроить мок для корневого пути. Используйте конкретные пути, например '/api/users'");
+                        return;
+                    }
+                if (response.ok) {
+                    alert('Мок успешно настроен!');
+                    refreshMocks();
+                } else {
+                    alert('Ошибка при настройке мока');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Ошибка при настройке мока');
+            });
+        }
+
+        // Обновление таблицы моков
+        function refreshMocks() {
+            fetch('/api/mock/configurations')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector('#mocksTable tbody');
+                    tbody.innerHTML = '';
+                    
+                    data.forEach(item => {
+                        const row = document.createElement('tr');
+                        
+                        const methodCell = document.createElement('td');
+                        methodCell.textContent = item.Method;
+                        
+                        const pathCell = document.createElement('td');
+                        pathCell.textContent = item.Path;
+                        
+                        const statusCell = document.createElement('td');
+                        statusCell.textContent = item.Value.StatusCode;
+                        
+                        const responseCell = document.createElement('td');
+                        responseCell.textContent = typeof item.Value.Body === 'object' 
+                            ? JSON.stringify(item.Value.Body) 
+                            : item.Value.Body;
+                        
+                        const headersCell = document.createElement('td');
+                        headersCell.textContent = item.Value.Headers 
+                            ? Object.entries(item.Value.Headers).map(([k, v]) => `${k}: ${v}`).join(', ') 
+                            : '';
+                        
+                        row.appendChild(methodCell);
+                        row.appendChild(pathCell);
+                        row.appendChild(statusCell);
+                        row.appendChild(responseCell);
+                        row.appendChild(headersCell);
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+        }
+
+        // Очистка всех моков
+        function clearAllMocks() {
+            if (confirm('Вы уверены, что хотите очистить все моки?')) {
+                fetch('/api/mock/clear', {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Все моки очищены!');
+                        refreshMocks();
+                    } else {
+                        alert('Ошибка при очистке моков');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Ошибка при очистке моков');
+                });
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshMocks();
+            addHeader(); // Добавляем один заголовок по умолчанию
+        });
+    </script>
+</body>
+</html>
