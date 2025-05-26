@@ -1,40 +1,110 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using WebApplication1.Models;
 
-namespace MockService.Controllers
+namespace WebApplication1.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class MockController : ApiController
     {
-        private static readonly Dictionary<string, MockResponse> MockResponses = new Dictionary<string, MockResponse>();
-        private static readonly object LockObject = new object();
+        private readonly MockDbContext _db = new MockDbContext();
 
-        // Настройка мока
         [HttpPost]
         [Route("api/mock/configure")]
-        public IHttpActionResult ConfigureMock([FromBody] MockRequest request)
+        public IHttpActionResult ConfigureMock([FromBody] MockRequestDto requestDto)
         {
-            if (request == null || string.IsNullOrEmpty(request.Path) || request.Response == null)
+            if (requestDto == null || string.IsNullOrEmpty(requestDto.Path) || requestDto.Response == null)
             {
-                return BadRequest("Неверный запрос");
+                return BadRequest("Invalid request");
             }
-
-            var key = $"{request.Method}_{request.Path}";
-
-            lock (LockObject)
+            using (var transaction = _db.Database.BeginTransaction())
             {
-                MockResponses[key] = request.Response;
-            }
+                try
+                {
+                    // Сохраняем ответ
+                    var response = new MockResponse
+                    {
+                        StatusCode = requestDto.Response.StatusCode,
+                        Body = requestDto.Response.Body is string ?
+                        requestDto.Response.Body.ToString() :
+                        JsonConvert.SerializeObject(requestDto.Response.Body),
+                        Headers = requestDto.Response.Headers
+                    };
+                    // Сохраняем запрос
+                    var request = new MockRequest
+                    {
+                        Path = requestDto.Path,
+                        Method = requestDto.Method,
+                        MockResponseId = response.Id
+                    };
+                    // Находим запрос по методу и пути
+                    var mockRequest = _db.MockRequests
+                        .Include("Response") // Явная загрузка связанного Response
+                        .FirstOrDefault(r => r.Method == request.Method && r.Path == request.Path);
 
-            return Ok();
+                    if (mockRequest != null)
+                    {
+                        return BadRequest("Такая заглушка существует");
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return InternalServerError(ex);
+                }
+
+            }
+            using (var transaction2 = _db.Database.BeginTransaction())
+            {
+                try
+                {
+
+
+                    // Сохраняем ответ
+                    var response = new MockResponse
+                    {
+                        StatusCode = requestDto.Response.StatusCode,
+                        Body = requestDto.Response.Body is string ?
+                            requestDto.Response.Body.ToString() :
+                            JsonConvert.SerializeObject(requestDto.Response.Body),
+                        Headers = requestDto.Response.Headers
+                    };
+
+                    _db.MockResponses.Add(response);
+                    _db.SaveChanges();
+
+
+                    // Сохраняем запрос
+                    var request = new MockRequest
+                    {
+                        Path = requestDto.Path,
+                        Method = requestDto.Method,
+                        MockResponseId = response.Id
+                    };
+                    
+
+
+                    _db.MockRequests.Add(request);
+                    _db.SaveChanges();
+
+                    transaction2.Commit();
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    transaction2.Rollback();
+                    return InternalServerError(ex);
+                }
+            }
         }
 
-        // Обработка всех входящих запросов
         [HttpGet]
         [HttpPost]
         [HttpPut]
@@ -43,7 +113,6 @@ namespace MockService.Controllers
         [Route("api/{*path}")]
         public HttpResponseMessage HandleRequest(string path)
         {
-            // Игнорируем запросы к корню и к самому хосту
             if (string.IsNullOrEmpty(path) || path.Equals("/") || path.Equals(""))
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new
@@ -53,25 +122,40 @@ namespace MockService.Controllers
                 });
             }
 
-
             var method = Request.Method.Method;
             var key = $"{method}_/{path}";
 
-            lock (LockObject)
+            // Находим запрос по методу и пути
+            var mockRequest = _db.MockRequests
+                .Include("Response") // Явная загрузка связанного Response
+                .FirstOrDefault(r => r.Method == method && r.Path == path);
+
+            if (mockRequest != null)
             {
-                if (MockResponses.TryGetValue(key, out var mockResponse))
+                // Десериализация тела ответа, если оно в формате JSON
+                object responseBody;
+                try
                 {
-                    var response = Request.CreateResponse(
-                        (HttpStatusCode)mockResponse.StatusCode,
-                        mockResponse.Body);
-
-                    foreach (var header in mockResponse.Headers)
-                    {
-                        response.Headers.Add(header.Key, header.Value);
-                    }
-
-                    return response;
+                    responseBody = JsonConvert.DeserializeObject(mockRequest.Response.Body);
                 }
+                catch
+                {
+                    responseBody = mockRequest.Response.Body;
+                }
+
+                var response = Request.CreateResponse(
+                    (HttpStatusCode)mockRequest.Response.StatusCode,
+                    responseBody);
+
+                var headers = JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                    mockRequest.Response.HeadersJson ?? "{}");
+
+                foreach (var header in headers)
+                {
+                    response.Headers.Add(header.Key, header.Value);
+                }
+
+                return response;
             }
 
             return Request.CreateResponse(HttpStatusCode.NotFound, new
@@ -83,46 +167,104 @@ namespace MockService.Controllers
             });
         }
 
-        // Получение списка всех моков
         [HttpGet]
         [Route("api/mock/configurations")]
         public IHttpActionResult GetConfigurations()
         {
-            lock (LockObject)
-            {
-                var configs = MockResponses.Select(kvp => new
+            var configs = _db.MockRequests
+                .Include("Response") // Используем строку вместо лямбда-выражения
+                .ToList()
+                .Select(r => new
                 {
-                    Key = kvp.Key,
-                    Method = kvp.Key.Split('_')[0],
-                    Path = kvp.Key.Split('_')[1],
-                    kvp.Value
-                }).ToList();
+                    Id = r.Id,
+                    Method = r.Method,
+                    Path = r.Path,
+                    Response = new
+                    {
+                        r.Response.StatusCode,
+                        Body = TryParseJson(r.Response.Body),
+                        Headers = JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                            r.Response.HeadersJson ?? "{}")
+                    }
+                });
 
-                return Ok(configs);
+            return Ok(configs);
+        }
+
+        private object TryParseJson(string json)
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject(json);
+            }
+            catch
+            {
+                return json;
             }
         }
 
-        // Очистка всех моков
         [HttpDelete]
         [Route("api/mock/clear")]
         public IHttpActionResult ClearAll()
         {
-            lock (LockObject)
+            try
             {
-                MockResponses.Clear();
+                _db.Database.ExecuteSqlCommand("DELETE FROM MockRequests");
+                _db.Database.ExecuteSqlCommand("DELETE FROM MockResponses");
+                return Ok();
             }
-            return Ok();
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+
+        [HttpDelete]
+        [Route("api/mock/delete/{id}")]
+        public IHttpActionResult DeleteMock(int id)
+        {
+            var mockRequest = _db.MockRequests
+                .Include("Response") // Используем строку вместо лямбда-выражения
+                .FirstOrDefault(r => r.Id == id);
+
+            if (mockRequest == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                //_db.MockRequests.Remove(mockRequest);
+                //_db.MockResponses.Remove(mockRequest.Response);
+                _db.Database.ExecuteSqlCommand($"DELETE FROM MockRequests WHERE Id= {id}");
+                _db.Database.ExecuteSqlCommand($"DELETE FROM MockResponses WHERE Id= {id}");
+                _db.SaveChanges();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 
-    public class MockRequest
+    public class MockRequestDto
     {
         public string Path { get; set; }
         public string Method { get; set; } = "GET";
-        public MockResponse Response { get; set; }
+        public MockResponseDto Response { get; set; }
     }
 
-    public class MockResponse
+    public class MockResponseDto
     {
         public int StatusCode { get; set; } = 200;
         public object Body { get; set; }

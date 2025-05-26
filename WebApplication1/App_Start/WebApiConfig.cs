@@ -15,8 +15,7 @@ public static class WebApiConfig
 {
     public static void Register(HttpConfiguration config)
     {
-        // Включение JWT-аутентификации
-        //config.MessageHandlers.Add(new JwtValidationHandler());
+        
         // Настройка сериализации JSON
         var jsonSettings = config.Formatters.JsonFormatter.SerializerSettings;
         jsonSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
@@ -28,7 +27,6 @@ public static class WebApiConfig
         // Маршрутизация атрибутов
         config.MapHttpAttributeRoutes();
 
-        // Конвенциональная маршрутизация
         // Игнорируем маршруты для статических файлов
         config.Routes.IgnoreRoute("Html", "{*path}", new { path = @".*\.html(/.*)?" });
         //config.Routes.IgnoreRoute("Root", "");
