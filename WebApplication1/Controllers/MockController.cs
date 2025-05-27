@@ -152,7 +152,11 @@ namespace WebApplication1.Controllers
 
                 foreach (var header in headers)
                 {
-                    response.Headers.Add(header.Key, header.Value);
+                    if (!response.Headers.TryAddWithoutValidation(header.Key, header.Value))
+                    {
+                        // Если не удалось добавить как заголовок ответа, пробуем добавить как заголовок контента
+                        response.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                    }
                 }
 
                 return response;

@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <setParameter name="IIS Web Application Name" value="WebMock" />
+  <setParameter name="MockDbContext-Web.config Connection String" value="Data Source=win-v1etibgg2me.netlab.local\SQLEXPRESS, 1433;Initial Catalog=WebMock;User Id=sa2;Password=Sa123456;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True" />
+</parameters>
