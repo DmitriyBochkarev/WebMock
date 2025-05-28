@@ -69,7 +69,7 @@
     
     <div class="container">
         <div class="section">
-            <h2>Добавить новую заглушку</h2>
+            <h2>Форма добавления/редактирования заглушки</h2>
             <div class="form-group">
                 <label for="method">Метод:</label>
                 <select id="method">
@@ -100,7 +100,11 @@
                 <button type="button" onclick="addHeader()">+</button>
             </div>
             </br>
-            <button onclick="configureMock()">Сохранить заглушку</button>
+            <div id="formContainer">
+                
+                <button onclick="configureMock()">Сохранить заглушку</button>
+            </div>
+            
 
         </div>
         
@@ -118,6 +122,7 @@
                         <th>Ответ</th>
                         <th>Заголовки</th>
                         <th>Удалить</th>
+                        <th>Редактировать</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -256,6 +261,14 @@
                             deleteBtn.onclick = () => deleteMock(item.Id);
                             deleteCell.appendChild(deleteBtn);
                             row.appendChild(deleteCell);
+
+                            const editCell = document.createElement('td');
+                            const editBtn = document.createElement('button');
+                            editBtn.textContent = '✏️';
+                            editBtn.style.backgroundColor = '#444337';
+                            editBtn.onclick = () => editMock(item.Id);
+                            editCell.appendChild(editBtn);
+                            row.appendChild(editCell);
                         });
                     })
                     .catch(error => {
@@ -305,6 +318,133 @@
                             alert('Ошибка при удалении мока');
                         });
                 }
+            }
+
+            // Новая функция для редактирования мока
+            function editMock(mockId) {
+                fetch(`/api/mock/configurations/${mockId}`)
+                    .then(response => response.json())
+                    .then(mock => {
+                        // Заполняем форму данными мока
+                        document.getElementById('method').value = mock.Method;
+                        document.getElementById('path').value = mock.Path;
+                        document.getElementById('statusCode').value = mock.Response.StatusCode;
+
+                        // Парсим тело ответа
+                        let responseBody = mock.Response.Body;
+                        if (typeof responseBody === 'string') {
+                            try {
+                                responseBody = JSON.parse(responseBody);
+                                responseBody = JSON.stringify(responseBody, null, 2);
+                            } catch (e) {
+                                // Оставляем как есть
+                            }
+                        } else {
+                            responseBody = JSON.stringify(responseBody, null, 2);
+                        }
+                        document.getElementById('responseBody').value = responseBody;
+
+                        // Заполняем заголовки
+                        const headersDiv = document.getElementById('headers');
+                        headersDiv.innerHTML = '';
+                        if (mock.Response.Headers) {
+                            Object.entries(mock.Response.Headers).forEach(([key, value]) => {
+                                addHeaderWithValues(key, value);
+                            });
+                        }
+
+                        // Добавляем кнопку "Обновить" вместо "Создать"
+                        const submitButton = document.createElement('button');
+                        submitButton.textContent = 'Обновить мок';
+                        submitButton.onclick = () => updateMock(mockId);
+                        document.getElementById('formContainer').appendChild(submitButton);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Ошибка при загрузке мока');
+                    });
+            }
+
+            // Функция для добавления заголовков с значениями
+            function addHeaderWithValues(key, value) {
+                const headersDiv = document.getElementById('headers');
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'header-row';
+
+                const keyInput = document.createElement('input');
+                keyInput.type = 'text';
+                keyInput.placeholder = 'Имя заголовка';
+                keyInput.value = key;
+
+                const valueInput = document.createElement('input');
+                valueInput.type = 'text';
+                valueInput.placeholder = 'Значение заголовка';
+                valueInput.value = value;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Удалить';
+                removeBtn.onclick = function () {
+                    headersDiv.removeChild(headerDiv);
+                };
+
+                headerDiv.appendChild(keyInput);
+                headerDiv.appendChild(valueInput);
+                headerDiv.appendChild(removeBtn);
+                headersDiv.appendChild(headerDiv);
+            }
+
+            // Функция для обновления мока
+            function updateMock(mockId) {
+                const method = document.getElementById('method').value;
+                const path = document.getElementById('path').value;
+                const statusCode = parseInt(document.getElementById('statusCode').value);
+                let responseBody = document.getElementById('responseBody').value;
+
+                try {
+                    responseBody = JSON.parse(responseBody);
+                } catch (e) {
+                    // Оставляем как строку
+                }
+
+                // Собираем заголовки
+                const headers = {};
+                const headerRows = document.getElementById('headers').children;
+                for (let row of headerRows) {
+                    const key = row.children[0].value;
+                    const value = row.children[1].value;
+                    if (key && value) {
+                        headers[key] = value;
+                    }
+                }
+
+                fetch(`/api/mock/update/${mockId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        Path: path,
+                        Method: method,
+                        Response: {
+                            StatusCode: statusCode,
+                            Body: responseBody,
+                            Headers: headers
+                        }
+                    })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Мок успешно обновлен!');
+                            refreshMocks();
+                        } else {
+                            alert('Ошибка при обновлении мока');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Ошибка при обновлении мока');
+                    });
+            
             }
 
             // Инициализация

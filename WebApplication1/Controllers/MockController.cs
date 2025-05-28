@@ -251,6 +251,80 @@ namespace WebApplication1.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("api/mock/update/{id}")]
+        public IHttpActionResult UpdateMock(int id, [FromBody] MockRequestDto requestDto)
+        {
+            if (requestDto == null || string.IsNullOrEmpty(requestDto.Path) || requestDto.Response == null) 
+            {
+                return BadRequest("Invalid request data");
+            }
+            using (var transaction =  _db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var existingRequest = _db.MockRequests
+                        .Include("Response")
+                        .FirstOrDefault(r =>r.Id == id);
+
+                    if (existingRequest == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Обновляем данные запроса
+
+                    existingRequest.Path = requestDto.Path;
+                    existingRequest.Method = requestDto.Method;
+
+                    // Обновляем данные ответа
+                    existingRequest.Response.StatusCode = requestDto.Response.StatusCode;
+                    existingRequest.Response.Body = requestDto.Response.Body is string
+                ? requestDto.Response.Body.ToString()
+                : JsonConvert.SerializeObject(requestDto.Response.Body);
+                    existingRequest.Response.HeadersJson = JsonConvert.SerializeObject(requestDto.Response.Headers ?? new Dictionary<string, string>());
+
+                    _db.SaveChanges();
+                    transaction.Commit();
+
+                    return Ok(new { Success = true, Message = "Mock updated successfully" });
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return InternalServerError(ex);
+                }
+            }
+
+            
+        }
+        [HttpGet]
+        [Route("api/mock/configurations/{id}")]
+        public IHttpActionResult GetMockConfiguration(int id)
+        {
+            var mock = _db.MockRequests
+                .Include("Response")
+                .FirstOrDefault(r => r.Id == id);
+
+            if (mock == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new
+            {
+                mock.Id,
+                mock.Method,
+                mock.Path,
+                Response = new
+                {
+                    mock.Response.StatusCode,
+                    Body = TryParseJson(mock.Response.Body),
+                    Headers = JsonConvert.DeserializeObject<Dictionary<string, string>>(mock.Response.HeadersJson ?? "{}")
+                }
+            });
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -263,6 +337,8 @@ namespace WebApplication1.Controllers
 
     public class MockRequestDto
     {
+        public int? Id { get; set; }  // Добавляем ID для редактирования
+
         public string Path { get; set; }
         public string Method { get; set; } = "GET";
         public MockResponseDto Response { get; set; }
