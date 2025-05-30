@@ -47,6 +47,7 @@ function openEditModal(mockId) {
 
 // Универсальная функция сохранения
 function saveMock() {
+    const id = currentMockId
     const method = document.getElementById('editMethod').value;
     const path = document.getElementById('editPath').value;
     const statusCode = parseInt(document.getElementById('editStatusCode').value);
@@ -69,13 +70,12 @@ function saveMock() {
         }
     }
 
-    fetch(`api/mock/update/${mockId}`, {
+    fetch(`api/mock/update/${id}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            Id: currentMockId,
             Path: path,
             Method: method,
             Response: {
