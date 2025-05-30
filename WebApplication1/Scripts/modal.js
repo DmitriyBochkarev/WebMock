@@ -71,7 +71,7 @@ function saveMock() {
     }
 
     fetch(`api/mock/update/${id}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
         },
