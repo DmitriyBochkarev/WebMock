@@ -114,6 +114,8 @@
     <script src="~/Scripts/modalcreate.js"></script>
 </head>
 <body>
+    <button onclick="openCreateModal()">Создать заглушку</button>
+
 
     <!-- <div class="container">
         <div class="section">
@@ -155,26 +157,26 @@
 
         </div> -->
 
-        <div class="section">
-            <h2>Все заглушки</h2>
-            <button onclick="refreshMocks()">Обновить</button>
-            <!-- <button onclick="clearAllMocks()" style="background-color: #f44336;">Очистить все</button> -->
-            </br>
-            <table id="mocksTable">
-                <thead>
-                    <tr>
-                        <th>Метод</th>
-                        <th>Путь</th>
-                        <th>Статус</th>
-                        <th>Ответ</th>
-                        <th>Заголовки</th>
-                        <th>Удалить</th>
-                        <th>Редактировать</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
+    <div class="section">
+        <h2>Все заглушки</h2>
+        <!--<button onclick="refreshMocks()">Обновить</button>
+     <button onclick="clearAllMocks()" style="background-color: #f44336;">Очистить все</button> -->
+        </br>
+        <table id="mocksTable">
+            <thead>
+                <tr>
+                    <th>Метод</th>
+                    <th>Путь</th>
+                    <th>Статус</th>
+                    <th>Ответ</th>
+                    <th>Заголовки</th>
+                    <th>Удалить</th>
+                    <th>Редактировать</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
     </div>
 
     <!-- Модальное окно создания -->
@@ -224,7 +226,7 @@
         </div>
     </div>
 
-    <button onclick="openCreateModal()">Создать заглушку</button>
+
 
     <!-- Модальное окно редактирования -->
     <div id="mockModal" class="modal">
