@@ -111,10 +111,11 @@
             }
     </style>
     <script src="~/Scripts/modal.js"></script>
+    <script src="~/Scripts/modalcreate.js"></script>
 </head>
 <body>
 
-    <div class="container">
+    <!-- <div class="container">
         <div class="section">
             <h2>Форма добавления/редактирования заглушки</h2>
             <div class="form-group">
@@ -142,7 +143,6 @@
             <div id="headersContainer">
                 <h3>Заголовки</h3>
                 <div id="headers">
-                    <!-- Заголовки будут добавляться здесь -->
                 </div>
                 <button type="button" onclick="addHeader()">+</button>
             </div>
@@ -153,7 +153,7 @@
             </div>
 
 
-        </div>
+        </div> -->
 
         <div class="section">
             <h2>Все заглушки</h2>
@@ -176,6 +176,55 @@
             </table>
         </div>
     </div>
+
+    <!-- Модальное окно создания -->
+    <div id="mockCreateModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Создать заглушку</h2>
+            <div class="form-container">
+                <!-- Форма будет заполняться динамически -->
+                <div class="form-group">
+                    <label for="method">Метод:</label>
+                    <select id="method">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="PATCH">PATCH</option>
+                    </select>
+                </div>
+                <!-- Остальные поля формы -->
+
+                <div class="form-group">
+                    <label for="path">Путь:</label>
+                    <input type="text" id="path" placeholder="/api/resource">
+                </div>
+                <div class="form-group">
+                    <label for="statusCode">Код статуса:</label>
+                    <input type="number" id="statusCode" value="200">
+                </div>
+                <div class="form-group">
+                    <label for="responseBody">Тело ответа:</label>
+                    <textarea id="responseBody" rows="5" placeholder='{ "key": "value" }'></textarea>
+                </div>
+                <div id="headersContainer">
+                    <h3>Заголовки</h3>
+                    <div id="headers">
+                        <!-- Заголовки будут добавляться здесь -->
+                    </div>
+                    <button type="button" onclick="addHeader()">+</button>
+                </div>
+                </br>
+                <div id="formContainer">
+
+                    <button onclick="configureMock()">Сохранить заглушку</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="openCreateModal()">Создать заглушку</button>
 
     <!-- Модальное окно редактирования -->
     <div id="mockModal" class="modal">
