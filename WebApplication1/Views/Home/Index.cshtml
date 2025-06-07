@@ -182,7 +182,7 @@
     <!-- Модальное окно создания -->
     <div id="mockCreateModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close" onclick="closeCreateModal()">&times;</span>
             <h2>Создать заглушку</h2>
             <div class="form-container">
                 <!-- Форма будет заполняться динамически -->
@@ -231,7 +231,7 @@
     <!-- Модальное окно редактирования -->
     <div id="mockModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close" onclick="closeModal()">&times;</span>
             <h2>Редактировать мок</h2>
             <div class="form-container">
                 <!-- Форма будет заполняться динамически -->
@@ -269,7 +269,7 @@
                 </br>
                 <div id="formContainer">
 
-                    <button onclick="configureMock()">Сохранить заглушку</button>
+                    <!--<button onclick="configureMock()">Сохранить заглушку</button>-->
                 </div>
 
                 <button onclick="saveMock()">Сохранить</button>
@@ -467,7 +467,7 @@
             }
         }
 
-        // Новая функция для редактирования мока
+        // Новая функция для редактирования мока (функция не задействована)
         function editMock(mockId) {
             fetch(`/api/mock/configurations/${mockId}`)
                 .then(response => response.json())
@@ -514,7 +514,7 @@
 
         // Функция для добавления заголовков с значениями
         function addHeaderWithValues(key, value) {
-            const headersDiv = document.getElementById('headers');
+            const headersDiv = document.getElementById('editHeaders');
             const headerDiv = document.createElement('div');
             headerDiv.className = 'header-row';
 
@@ -529,7 +529,7 @@
             valueInput.value = value;
 
             const removeBtn = document.createElement('button');
-            removeBtn.textContent = 'Удалить';
+            removeBtn.textContent = 'X';
             removeBtn.onclick = function () {
                 headersDiv.removeChild(headerDiv);
             };

@@ -1,8 +1,13 @@
 ﻿// Функция открытия модального окна для редактирования
 function openCreateModal() {
-    const modal = document.getElementById('mockCreateModal');
+    const modalCreate = document.getElementById('mockCreateModal');
     
             // Открываем модальное окно
-            modal.style.display = 'block';
+            modalCreate.style.display = 'block';
      
+}
+// Функция закрытия модального окна
+function closeCreateModal() {
+    document.getElementById('mockCreateModal').style.display = 'none';
+    currentMockId = null;
 }
