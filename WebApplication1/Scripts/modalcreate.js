@@ -9,5 +9,5 @@ function openCreateModal() {
 // Функция закрытия модального окна
 function closeCreateModal() {
     document.getElementById('mockCreateModal').style.display = 'none';
-    currentMockId = null;
+    
 }

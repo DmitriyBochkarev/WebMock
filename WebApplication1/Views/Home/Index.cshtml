@@ -264,7 +264,7 @@
                     <div id="editHeaders">
                         <!-- Заголовки будут добавляться здесь -->
                     </div>
-                    <button type="button" onclick="addHeader()">+</button>
+                    <button type="button" onclick="addEditHeader()">+</button>
                 </div>
                 </br>
                 <div id="formContainer">
@@ -281,6 +281,32 @@
         // Добавление полей для заголовка
         function addHeader() {
             const headersDiv = document.getElementById('headers');
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'header-row';
+
+            const keyInput = document.createElement('input');
+            keyInput.type = 'text';
+            keyInput.placeholder = 'Имя заголовка';
+
+            const valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.placeholder = 'Значение заголовка';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = 'X';
+            removeBtn.onclick = function () {
+                headersDiv.removeChild(headerDiv);
+            };
+
+            headerDiv.appendChild(keyInput);
+            headerDiv.appendChild(valueInput);
+            headerDiv.appendChild(removeBtn);
+            headersDiv.appendChild(headerDiv);
+        }
+
+        // Добавление полей для заголовка при редактировании
+        function addEditHeader() {
+            const headersDiv = document.getElementById('editHeaders');
             const headerDiv = document.createElement('div');
             headerDiv.className = 'header-row';
 
