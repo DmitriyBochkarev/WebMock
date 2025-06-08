@@ -114,7 +114,7 @@
     <script src="~/Scripts/modalcreate.js"></script>
 </head>
 <body>
-    <button onclick="openCreateModal()">Создать заглушку</button>
+    
 
 
     <!-- <div class="container">
@@ -159,8 +159,9 @@
 
     <div class="section">
         <h2>Все заглушки</h2>
+        <button onclick="openCreateModal()">Создать заглушку</button>
         <!--<button onclick="refreshMocks()">Обновить</button>
-     <button onclick="clearAllMocks()" style="background-color: #f44336;">Очистить все</button> -->
+    <button onclick="clearAllMocks()" style="background-color: #f44336;">Очистить все</button> -->
         </br>
         <table id="mocksTable">
             <thead>
@@ -365,7 +366,7 @@
                 }
             };
 
-            fetch('/api/mock/configure', {
+            fetch('/webmocks/mock/configure', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -393,7 +394,7 @@
 
         // Обновление таблицы моков
         function refreshMocks() {
-            fetch('/api/mock/configurations')
+            fetch('/webmocks/mock/configurations')
                 .then(response => response.json())
                 .then(data => {
                     const tbody = document.querySelector('#mocksTable tbody');
@@ -453,7 +454,7 @@
         // Очистка всех моков
         function clearAllMocks() {
             if (confirm('Вы уверены, что хотите очистить все моки?')) {
-                fetch('/api/mock/clear', {
+                fetch('/webmocks/mock/clear', {
                     method: 'DELETE'
                 })
                     .then(response => {
@@ -475,7 +476,7 @@
 
         function deleteMock(id) {
             if (confirm('Вы уверены, что хотите удалить этот мок?')) {
-                fetch(`/api/mock/delete/${id}`, {
+                fetch(`/webmocks/mock/delete/${id}`, {
                     method: 'DELETE'
                 })
                     .then(response => {
@@ -495,7 +496,7 @@
 
         // Новая функция для редактирования мока (функция не задействована)
         function editMock(mockId) {
-            fetch(`/api/mock/configurations/${mockId}`)
+            fetch(`/webmocks/mock/configurations/${mockId}`)
                 .then(response => response.json())
                 .then(mock => {
                     // Заполняем форму данными мока
@@ -591,7 +592,7 @@
                 }
             }
 
-            fetch(`/api/mock/update/${mockId}`, {
+            fetch(`/webmocks/mock/update/${mockId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -33,8 +33,8 @@ public static class WebApiConfig
 
 
         config.Routes.MapHttpRoute(
-            name: "DefaultApi",
-            routeTemplate: "api/{controller}/{id}",
+            name: "CustomApi",
+            routeTemplate: "webmocks/{controller}/{id}",
             defaults: new { id = System.Web.Http.RouteParameter.Optional }
         );
 

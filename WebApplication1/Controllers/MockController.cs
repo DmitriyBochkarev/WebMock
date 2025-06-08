@@ -16,7 +16,7 @@ namespace WebApplication1.Controllers
         private readonly MockDbContext _db = new MockDbContext();
 
         [HttpPost]
-        [Route("api/mock/configure")]
+        [Route("webmocks/mock/configure")]
         public IHttpActionResult ConfigureMock([FromBody] MockRequestDto requestDto)
         {
             if (requestDto == null || string.IsNullOrEmpty(requestDto.Path) || requestDto.Response == null)
@@ -110,7 +110,7 @@ namespace WebApplication1.Controllers
         [HttpPut]
         [HttpDelete]
         [HttpPatch]
-        [Route("api/{*path}")]
+        [Route("webmocks/{*path}")]
         public HttpResponseMessage HandleRequest(string path)
         {
             if (string.IsNullOrEmpty(path) || path.Equals("/") || path.Equals(""))
@@ -172,7 +172,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet]
-        [Route("api/mock/configurations")]
+        [Route("webmocks/mock/configurations")]
         public IHttpActionResult GetConfigurations()
         {
             var configs = _db.MockRequests
@@ -208,7 +208,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpDelete]
-        [Route("api/mock/clear")]
+        [Route("webmocks/mock/clear")]
         public IHttpActionResult ClearAll()
         {
             try
@@ -224,7 +224,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpDelete]
-        [Route("api/mock/delete/{id}")]
+        [Route("webmocks/mock/delete/{id}")]
         public IHttpActionResult DeleteMock(int id)
         {
             var mockRequest = _db.MockRequests
@@ -252,7 +252,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPut]
-        [Route("api/mock/update/{id}")]
+        [Route("webmocks/mock/update/{id}")]
         public IHttpActionResult UpdateMock(int id, [FromBody] MockRequestDto requestDto)
         {
             if (requestDto == null || string.IsNullOrEmpty(requestDto.Path) || requestDto.Response == null) 
@@ -299,7 +299,7 @@ namespace WebApplication1.Controllers
             
         }
         [HttpGet]
-        [Route("api/mock/configurations/{id}")]
+        [Route("webmocks/mock/configurations/{id}")]
         public IHttpActionResult GetMockConfiguration(int id)
         {
             var mock = _db.MockRequests

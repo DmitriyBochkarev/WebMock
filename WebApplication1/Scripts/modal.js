@@ -5,7 +5,7 @@ let currentMockId = null;
 function openEditModal(mockId) {
     currentMockId = mockId;
     const modal = document.getElementById('mockModal');
-    fetch(`/api/mock/configurations/${mockId}`)
+    fetch(`/webmocks/mock/configurations/${mockId}`)
         .then(response => response.json())
         .then(mock => {
             // Заполняем форму данными мока
@@ -70,7 +70,7 @@ function saveMock() {
         }
     }
 
-    fetch(`api/mock/update/${id}`, {
+    fetch(`webmocks/mock/update/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
