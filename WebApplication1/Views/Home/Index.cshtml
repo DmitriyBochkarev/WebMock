@@ -543,6 +543,7 @@
             const headersDiv = document.getElementById('editHeaders');
             const headerDiv = document.createElement('div');
             headerDiv.className = 'header-row';
+            headersDiv.innerHTML = '';
 
             const keyInput = document.createElement('input');
             keyInput.type = 'text';
@@ -566,7 +567,7 @@
             headersDiv.appendChild(headerDiv);
         }
 
-        // Функция для обновления мока
+        // Функция для обновления мока (функция не задействована)
         function updateMock(mockId) {
             const method = document.getElementById('method').value;
             const path = document.getElementById('path').value;

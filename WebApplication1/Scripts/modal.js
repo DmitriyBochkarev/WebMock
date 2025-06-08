@@ -29,6 +29,7 @@ function openEditModal(mockId) {
 
             // Заполняем заголовки (заголовки заполняются функцией addHeaderWithValues)
             const headersDiv = document.getElementById('editHeaders');
+            headersDiv.innerHTML = '';
             if (mock.Response.Headers) {
                 Object.entries(mock.Response.Headers).forEach(([key, value]) => {
                     addHeaderWithValues(key, value);
