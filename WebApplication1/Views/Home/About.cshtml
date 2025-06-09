@@ -1,9 +1,126 @@
-﻿@{
-    ViewBag.Title = "About";
-}
-<main aria-labelledby="title">
-    <h2 id="title">@ViewBag.Title.</h2>
-    <h3>@ViewBag.Message</h3>
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mock Service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
 
-    <p>Use this area to provide additional information.</p>
-</main>
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input, select, textarea {
+            padding: 5px;
+            width: 300px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background-color: #45a049;
+            }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .header-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+            .header-row input {
+                width: 150px;
+            }
+
+            .header-row button {
+                background-color: #f44336;
+            }
+        /* Стили модального окна */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            max-width: 600px;
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+            .close:hover {
+                color: black;
+            }
+    </style>
+    <script src="~/Scripts/modal.js"></script>
+    <script src="~/Scripts/modalcreate.js"></script>
+</head>
+<body>
+    <main aria-labelledby="title">
+        <h2 id="title"></h2>
+        <h3></h3>
+
+        <p>Для создания новой заглушки нажмате на кнопку <button onclick="openCreateModal()">Создать заглушку</button>. Укажите:</p>
+        <ol><li>Метод,</li> <li>Путь (указывается часть пути после https://host:port/webmock/webmocks/),</li> <li>Тело ответа,</li> <li>Заголовки ответа</li></ol>
+        <p>Для добавления заголовков нажмите кнопку <button type="button" onclick="addHeader()">+</button></p>
+    </main>
+</body>
+</html>
