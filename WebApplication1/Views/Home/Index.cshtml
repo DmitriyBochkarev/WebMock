@@ -401,7 +401,10 @@
                     const tbody = document.querySelector('#mocksTable tbody');
                     tbody.innerHTML = '';
 
-                    data.forEach(item => {
+                    // Сортируем данные в обратном порядке (по ID или дате создания)
+                    const reversedData = [...data].reverse(); // Простое обращение массива
+
+                    reversedData.forEach(item => {
                         const row = document.createElement('tr');
 
                         const methodCell = document.createElement('td');
