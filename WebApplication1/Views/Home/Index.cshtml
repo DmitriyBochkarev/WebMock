@@ -357,9 +357,17 @@
                 }
             }
 
+            // Собираем параметры запроса
+            const queryParams = {};
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.forEach((value, key) => {
+                queryParams[key] = value;
+            });
+
             const mockRequest = {
                 Path: path,
                 Method: method,
+                QueryParameters: queryParams,
                 Response: {
                     StatusCode: statusCode,
                     Body: responseBody,

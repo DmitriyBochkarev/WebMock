@@ -171,6 +171,10 @@
     <Compile Include="Migrations\202505192041037_InitialCreate.Designer.cs">
       <DependentUpon>202505192041037_InitialCreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202506121844414_query.cs" />
+    <Compile Include="Migrations\202506121844414_query.Designer.cs">
+      <DependentUpon>202506121844414_query.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\MockDbContext.cs" />
     <Compile Include="Models\MockRequest.cs" />
@@ -265,6 +269,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202505192041037_InitialCreate.resx">
       <DependentUpon>202505192041037_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202506121844414_query.resx">
+      <DependentUpon>202506121844414_query.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

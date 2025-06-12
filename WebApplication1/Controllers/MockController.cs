@@ -41,7 +41,9 @@ namespace WebApplication1.Controllers
                     {
                         Path = requestDto.Path,
                         Method = requestDto.Method,
+                        QueryParams = requestDto.QueryParameters ?? new Dictionary<string, string>(),
                         MockResponseId = response.Id
+
                     };
                     // Находим запрос по методу и пути
                     var mockRequest = _db.MockRequests
@@ -86,6 +88,7 @@ namespace WebApplication1.Controllers
                     {
                         Path = requestDto.Path,
                         Method = requestDto.Method,
+                        QueryParams = requestDto.QueryParameters ?? new Dictionary<string, string>(),
                         MockResponseId = response.Id
                     };
                     
@@ -125,10 +128,16 @@ namespace WebApplication1.Controllers
             var method = Request.Method.Method;
             var key = $"{method}_/{path}";
 
-            // Находим запрос по методу и пути
+            var queryParams = Request.GetQueryNameValuePairs()
+        .ToDictionary(kv => kv.Key, kv => kv.Value);
+            var queryParamsDeserialize = JsonConvert.SerializeObject(queryParams);
+
+            // Находим запрос по методу и пути и параметрам
             var mockRequest = _db.MockRequests
                 .Include("Response") // Явная загрузка связанного Response
-                .FirstOrDefault(r => r.Method == method && r.Path == path);
+                .FirstOrDefault(r => r.Method == method && r.Path == path &&
+                           r.QueryParameters == queryParamsDeserialize);
+
 
             if (mockRequest != null)
             {
@@ -167,6 +176,7 @@ namespace WebApplication1.Controllers
                 Message = "Для этого пути и метода не настроен мок",
                 Path = path,
                 Method = method,
+                QueryParameters = queryParams,
                 ConfigureUrl = "/index.html"
             });
         }
@@ -183,6 +193,7 @@ namespace WebApplication1.Controllers
                     Id = r.Id,
                     Method = r.Method,
                     Path = r.Path,
+                    QueryParameters = r.QueryParameters,
                     Response = new
                     {
                         r.Response.StatusCode,
@@ -276,6 +287,7 @@ namespace WebApplication1.Controllers
 
                     existingRequest.Path = requestDto.Path;
                     existingRequest.Method = requestDto.Method;
+                    existingRequest.QueryParameters = JsonConvert.SerializeObject(requestDto.QueryParameters ?? new Dictionary<string, string>());
 
                     // Обновляем данные ответа
                     existingRequest.Response.StatusCode = requestDto.Response.StatusCode;
@@ -316,6 +328,7 @@ namespace WebApplication1.Controllers
                 mock.Id,
                 mock.Method,
                 mock.Path,
+                mock.QueryParameters,
                 Response = new
                 {
                     mock.Response.StatusCode,
@@ -341,6 +354,7 @@ namespace WebApplication1.Controllers
 
         public string Path { get; set; }
         public string Method { get; set; } = "GET";
+        public Dictionary<string, string> QueryParameters { get; set; }
         public MockResponseDto Response { get; set; }
     }
 
@@ -348,6 +362,7 @@ namespace WebApplication1.Controllers
     {
         public int StatusCode { get; set; } = 200;
         public object Body { get; set; }
+        
         public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
     }
 }
