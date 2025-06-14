@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Remoting.Messaging;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using WebApplication1.Models;
@@ -200,7 +201,8 @@ namespace WebApplication1.Controllers
                     Id = r.Id,
                     Method = r.Method,
                     Path = r.Path,
-                    QueryParameters = r.QueryParameters,
+                    QueryParameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                            r.QueryParameters ?? "{}"),
                     Response = new
                     {
                         r.Response.StatusCode,
