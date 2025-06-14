@@ -16,7 +16,6 @@ namespace WebApplication1.Models
 
         public string QueryParameters { get; set; } // JSON-строка с параметрами
 
-        [NotMapped]
         public Dictionary<string, string> QueryParams
         {
             get => JsonConvert.DeserializeObject<Dictionary<string, string>>(QueryParameters ?? "{}");

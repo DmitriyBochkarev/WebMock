@@ -222,7 +222,7 @@
                 <div id="queryParamsContainer">
                     <h3>queryParams</h3>
                     <div id="queryParams">
-                        <!-- Заголовки будут добавляться здесь -->
+                        <!-- Параметры будут добавляться здесь -->
                     </div>
                     <button type="button" onclick="addQueryParams()">+</button>
                 </div>
@@ -275,6 +275,13 @@
                     </div>
                     <button type="button" onclick="addEditHeader()">+</button>
                 </div>
+                <div id="queryParamsContainer">
+                    <h3>queryParams</h3>
+                    <div id="editQueryParams">
+                        <!-- Параметры будут добавляться здесь -->
+                    </div>
+                    <button type="button" onclick="addEditQueryParams()">+</button>
+                </div>
                 </br>
                 <div id="formContainer">
 
@@ -291,6 +298,32 @@
         // Добавление полей для query параметров
         function addQueryParams() {
             const queryParamsDiv = document.getElementById('queryParams');
+            const queryParamDiv = document.createElement('div');
+            queryParamDiv.className = 'header-row';
+
+            const keyInput = document.createElement('input');
+            keyInput.type = 'text';
+            keyInput.placeholder = 'Имя query параметра';
+
+            const valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.placeholder = 'Значение query параметра';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = 'X';
+            removeBtn.onclick = function () {
+                queryParamsDiv.removeChild(queryParamDiv);
+            };
+
+            queryParamDiv.appendChild(keyInput);
+            queryParamDiv.appendChild(valueInput);
+            queryParamDiv.appendChild(removeBtn);
+            queryParamsDiv.appendChild(queryParamDiv);
+        }
+
+        // Добавление полей для query параметров при редактировании
+        function addEditQueryParams() {
+            const queryParamsDiv = document.getElementById('editQueryParams');
             const queryParamDiv = document.createElement('div');
             queryParamDiv.className = 'header-row';
 
@@ -405,7 +438,7 @@
             const mockRequest = {
                 Path: path,
                 Method: method,
-                QueryParameters: queryParams,
+                QueryParams: queryParams,
                 Response: {
                     StatusCode: statusCode,
                     Body: responseBody,
@@ -594,7 +627,6 @@
             const headersDiv = document.getElementById('editHeaders');
             const headerDiv = document.createElement('div');
             headerDiv.className = 'header-row';
-            headersDiv.innerHTML = '';
 
             const keyInput = document.createElement('input');
             keyInput.type = 'text';
@@ -616,6 +648,36 @@
             headerDiv.appendChild(valueInput);
             headerDiv.appendChild(removeBtn);
             headersDiv.appendChild(headerDiv);
+        }
+
+        
+
+        // Функция для добавления QueryParams с значениями
+        function addQueryParamsWithValues(key, value) {
+            const queryParamsDiv = document.getElementById('editQueryParams');
+            const queryParamDiv = document.createElement('div');
+            queryParamDiv.className = 'header-row';
+
+            const keyInput = document.createElement('input');
+            keyInput.type = 'text';
+            keyInput.placeholder = 'Имя QueryParams';
+            keyInput.value = key;
+
+            const valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.placeholder = 'Значение QueryParams';
+            valueInput.value = value;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = 'X';
+            removeBtn.onclick = function () {
+                queryParamsDiv.removeChild(queryParamDiv);
+            };
+
+            queryParamDiv.appendChild(keyInput);
+            queryParamDiv.appendChild(valueInput);
+            queryParamDiv.appendChild(removeBtn);
+            queryParamsDiv.appendChild(queryParamDiv);
         }
 
         // Функция для обновления мока (функция не задействована)
@@ -642,6 +704,17 @@
                 }
             }
 
+            // Собираем параметры запроса
+            const queryParams = {};
+            const urlParams = document.getElementById('queryParams').children;
+            for (let row of urlParams) {
+                const key = row.children[0].value;
+                const value = row.children[1].value;
+                if (key && value) {
+                    queryParams[key] = value;
+                }
+            }
+
             fetch(`/webmocks/mock/update/${mockId}`, {
                 method: 'PUT',
                 headers: {
@@ -650,6 +723,7 @@
                 body: JSON.stringify({
                     Path: path,
                     Method: method,
+                    QueryParams: queryParams,
                     Response: {
                         StatusCode: statusCode,
                         Body: responseBody,

@@ -175,6 +175,10 @@
     <Compile Include="Migrations\202506121844414_query.Designer.cs">
       <DependentUpon>202506121844414_query.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202506140525526_queryDict.cs" />
+    <Compile Include="Migrations\202506140525526_queryDict.Designer.cs">
+      <DependentUpon>202506140525526_queryDict.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\MockDbContext.cs" />
     <Compile Include="Models\MockRequest.cs" />
@@ -272,6 +276,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202506121844414_query.resx">
       <DependentUpon>202506121844414_query.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202506140525526_queryDict.resx">
+      <DependentUpon>202506140525526_queryDict.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -41,7 +41,7 @@ namespace WebApplication1.Controllers
                     {
                         Path = requestDto.Path,
                         Method = requestDto.Method,
-                        QueryParams = requestDto.QueryParameters ?? new Dictionary<string, string>(),
+                        QueryParams = requestDto.QueryParams ?? new Dictionary<string, string>(),
                         MockResponseId = response.Id
 
                     };
@@ -88,7 +88,7 @@ namespace WebApplication1.Controllers
                     {
                         Path = requestDto.Path,
                         Method = requestDto.Method,
-                        QueryParams = requestDto.QueryParameters ?? new Dictionary<string, string>(),
+                        QueryParams = requestDto.QueryParams ?? new Dictionary<string, string>(),
                         MockResponseId = response.Id
                     };
                     
@@ -277,10 +277,14 @@ namespace WebApplication1.Controllers
             {
                 return BadRequest("Invalid request data");
             }
+
+
             using (var transaction =  _db.Database.BeginTransaction())
             {
                 try
                 {
+                    
+
                     var existingRequest = _db.MockRequests
                         .Include("Response")
                         .FirstOrDefault(r =>r.Id == id);
@@ -294,7 +298,10 @@ namespace WebApplication1.Controllers
 
                     existingRequest.Path = requestDto.Path;
                     existingRequest.Method = requestDto.Method;
-                    existingRequest.QueryParameters = JsonConvert.SerializeObject(requestDto.QueryParameters ?? new Dictionary<string, string>());
+                    existingRequest.QueryParameters = JsonConvert.SerializeObject(requestDto.QueryParams ?? new Dictionary<string, string>());
+
+
+                    
 
                     // Обновляем данные ответа
                     existingRequest.Response.StatusCode = requestDto.Response.StatusCode;
@@ -306,7 +313,7 @@ namespace WebApplication1.Controllers
                     _db.SaveChanges();
                     transaction.Commit();
 
-                    return Ok(new { Success = true, Message = "Mock updated successfully" });
+                    return Ok(new { Success = true, Message = $"Mock updated successfully {JsonConvert.SerializeObject(requestDto.QueryParams)}" }); ;
                 }
                 catch (Exception ex)
                 {
@@ -335,7 +342,7 @@ namespace WebApplication1.Controllers
                 mock.Id,
                 mock.Method,
                 mock.Path,
-                mock.QueryParameters,
+                QueryParameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(mock.QueryParameters ?? "{}"),
                 Response = new
                 {
                     mock.Response.StatusCode,
@@ -361,7 +368,7 @@ namespace WebApplication1.Controllers
 
         public string Path { get; set; }
         public string Method { get; set; } = "GET";
-        public Dictionary<string, string> QueryParameters { get; set; }
+        public Dictionary<string, string> QueryParams { get; set; } = new Dictionary<string, string>();
         public MockResponseDto Response { get; set; }
     }
 

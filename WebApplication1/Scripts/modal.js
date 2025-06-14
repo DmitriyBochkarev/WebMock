@@ -36,6 +36,15 @@ function openEditModal(mockId) {
                 });
             }
 
+            // Заполняем query params (query params заполняются функцией addQueryParamsWithValues)
+            const queryParamsDiv = document.getElementById('editQueryParams');
+            queryParamsDiv.innerHTML = '';
+            if (mock.QueryParameters) {
+                Object.entries(mock.QueryParameters).forEach(([key, value]) => {
+                    addQueryParamsWithValues(key, value);
+                });
+            }
+
             // Открываем модальное окно
             modal.style.display = 'block';
         })
@@ -70,6 +79,17 @@ function saveMock() {
         }
     }
 
+    // Собираем параметры запроса
+    const queryParams = {};
+    const urlParams = document.getElementById('editQueryParams').children;
+    for (let row of urlParams) {
+        const key1 = row.children[0].value;
+        const value1 = row.children[1].value;
+        if (key1 && value1) {
+            queryParams[key1] = value1;
+        }
+    }
+
     fetch(`webmocks/mock/update/${id}`, {
         method: 'PUT',
         headers: {
@@ -78,6 +98,7 @@ function saveMock() {
         body: JSON.stringify({
             Path: path,
             Method: method,
+            QueryParams: queryParams,
             Response: {
                 StatusCode: statusCode,
                 Body: responseBody,
