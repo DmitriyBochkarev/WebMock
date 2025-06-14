@@ -133,10 +133,17 @@ namespace WebApplication1.Controllers
             var queryParamsDeserialize = JsonConvert.SerializeObject(queryParams);
 
             // Находим запрос по методу и пути и параметрам
-            var mockRequest = _db.MockRequests
+            var exactMatch = _db.MockRequests
                 .Include("Response") // Явная загрузка связанного Response
                 .FirstOrDefault(r => r.Method == method && r.Path == path &&
                            r.QueryParameters == queryParamsDeserialize);
+
+            // Если нет точного совпадения, ищем совпадение только по методу и пути
+            var mockRequest = exactMatch ?? _db.MockRequests
+                .Include("Response")
+                .FirstOrDefault(r => r.Method == method &&
+                                   r.Path == path &&
+                                   string.IsNullOrEmpty(r.QueryParameters));
 
 
             if (mockRequest != null)

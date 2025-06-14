@@ -219,6 +219,13 @@
                     </div>
                     <button type="button" onclick="addHeader()">+</button>
                 </div>
+                <div id="queryParamsContainer">
+                    <h3>queryParams</h3>
+                    <div id="queryParams">
+                        <!-- Заголовки будут добавляться здесь -->
+                    </div>
+                    <button type="button" onclick="addQueryParams()">+</button>
+                </div>
                 </br>
                 <div id="formContainer">
 
@@ -280,6 +287,33 @@
     </div>
 
     <script>
+
+        // Добавление полей для query параметров
+        function addQueryParams() {
+            const queryParamsDiv = document.getElementById('queryParams');
+            const queryParamDiv = document.createElement('div');
+            queryParamDiv.className = 'header-row';
+
+            const keyInput = document.createElement('input');
+            keyInput.type = 'text';
+            keyInput.placeholder = 'Имя query параметра';
+
+            const valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.placeholder = 'Значение query параметра';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = 'X';
+            removeBtn.onclick = function () {
+                queryParamsDiv.removeChild(queryParamDiv);
+            };
+
+            queryParamDiv.appendChild(keyInput);
+            queryParamDiv.appendChild(valueInput);
+            queryParamDiv.appendChild(removeBtn);
+            queryParamsDiv.appendChild(queryParamDiv);
+        }
+
         // Добавление полей для заголовка
         function addHeader() {
             const headersDiv = document.getElementById('headers');
@@ -359,10 +393,14 @@
 
             // Собираем параметры запроса
             const queryParams = {};
-            const urlParams = new URLSearchParams(window.location.search);
-            urlParams.forEach((value, key) => {
-                queryParams[key] = value;
-            });
+            const urlParams = document.getElementById('queryParams').children;
+            for (let row of urlParams) {
+                const key = row.children[0].value;
+                const value = row.children[1].value;
+                if (key && value) {
+                    queryParams[key] = value;
+                }
+            }
 
             const mockRequest = {
                 Path: path,
@@ -638,6 +676,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             refreshMocks();
             addHeader(); // Добавляем один заголовок по умолчанию
+            addQueryParams();
         });
     </script>
 </body>
