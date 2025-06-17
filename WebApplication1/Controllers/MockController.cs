@@ -1,10 +1,12 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Remoting.Messaging;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using WebApplication1.Models;
@@ -90,6 +92,9 @@ namespace WebApplication1.Controllers
                         Path = requestDto.Path,
                         Method = requestDto.Method,
                         QueryParams = requestDto.QueryParams ?? new Dictionary<string, string>(),
+                        BodyParameters = requestDto.BodyParameters != null
+            ? JsonConvert.SerializeObject(requestDto.BodyParameters)
+            : null,
                         MockResponseId = response.Id
                     };
                     
@@ -115,7 +120,7 @@ namespace WebApplication1.Controllers
         [HttpDelete]
         [HttpPatch]
         [Route("webmocks/{*path}")]
-        public HttpResponseMessage HandleRequest(string path)
+        public async Task<HttpResponseMessage> HandleRequestWithBody(string path)
         {
             if (string.IsNullOrEmpty(path) || path.Equals("/") || path.Equals(""))
             {
@@ -133,11 +138,37 @@ namespace WebApplication1.Controllers
         .ToDictionary(kv => kv.Key, kv => kv.Value);
             var queryParamsDeserialize = JsonConvert.SerializeObject(queryParams);
 
-            // Находим запрос по методу и пути и параметрам
-            var exactMatch = _db.MockRequests
-                .Include("Response") // Явная загрузка связанного Response
-                .FirstOrDefault(r => r.Method == method && r.Path == path &&
+            // Читаем тело запроса
+            var requestBody = Request;
+
+            // Получаем ВСЕ возможные заглушки для этого пути и метода
+            var potentialMocks = _db.MockRequests
+                .Include("Response")
+                .Where(r => r.Method == method && r.Path == path)
+                .ToList(); // Материализуем запрос
+
+            var exactMatch = potentialMocks.FirstOrDefault(r =>
+                MatchBodyParameters(r, requestBody) &&
                            r.QueryParameters == queryParamsDeserialize);
+
+            foreach (var mock in potentialMocks)
+            {
+                bool matchbody = MatchBodyParameters(mock, requestBody);
+                
+                if (matchbody == true)
+                {
+                    exactMatch = mock;
+                }
+                else
+                {
+                    exactMatch = potentialMocks.FirstOrDefault(r =>
+                MatchBodyParameters(r, requestBody) &&
+                           r.QueryParameters == queryParamsDeserialize);
+                }
+            }
+
+
+
 
             // Если нет точного совпадения, ищем совпадение только по методу и пути
             var mockRequest = exactMatch ?? _db.MockRequests
@@ -145,7 +176,6 @@ namespace WebApplication1.Controllers
                 .FirstOrDefault(r => r.Method == method &&
                                    r.Path == path &&
                                    string.IsNullOrEmpty(r.QueryParameters));
-
 
             if (mockRequest != null)
             {
@@ -362,6 +392,33 @@ namespace WebApplication1.Controllers
             }
             base.Dispose(disposing);
         }
+        private bool MatchBodyParameters(MockRequest mock, HttpRequestMessage request)
+        {
+            if (string.IsNullOrEmpty(mock.BodyParameters))
+                return true;
+
+            try
+            {
+                var requestBody = request.Content.ReadAsStringAsync().Result;
+                if (string.IsNullOrEmpty(requestBody))
+                    return false;
+
+                var requestJson = JToken.Parse(requestBody);
+                var mockJson = mock.BodyParametersJson;
+
+                foreach (var prop in mockJson.Properties())
+                {
+                    if (requestJson[prop.Name]?.ToString() != prop.Value.ToString())
+                        return false;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 
     public class MockRequestDto
@@ -371,6 +428,7 @@ namespace WebApplication1.Controllers
         public string Path { get; set; }
         public string Method { get; set; } = "GET";
         public Dictionary<string, string> QueryParams { get; set; } = new Dictionary<string, string>();
+        public JObject BodyParameters { get; set; } // Для сложных тел
         public MockResponseDto Response { get; set; }
     }
 
@@ -381,4 +439,7 @@ namespace WebApplication1.Controllers
         
         public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
     }
+
+
 }
+

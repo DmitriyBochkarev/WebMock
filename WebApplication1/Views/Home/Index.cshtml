@@ -227,6 +227,15 @@
                     </div>
                     <button type="button" onclick="addQueryParams()">+</button>
                 </div>
+                <label>Параметры тела:</label>
+                <div id="bodyParams">
+                    <div class="body-param-row">
+                        <input type="text" class="body-param-name" placeholder="Ключ">
+                        <input type="text" class="body-param-value" placeholder="Значение">
+                        <button onclick="removeBodyParam(this)">×</button>
+                    </div>
+                </div>
+                <button onclick="addBodyParam()">+ Добавить параметр</button>
                 </br>
                 <div id="formContainer">
 
@@ -295,6 +304,35 @@
     </div>
 
     <script>
+
+        function addBodyParam() {
+            const container = document.getElementById('bodyParams');
+            const div = document.createElement('div');
+            div.className = 'body-param-row';
+            div.innerHTML = `
+        <input type="text" class="body-param-name" placeholder="Ключ">
+        <input type="text" class="body-param-value" placeholder="Значение">
+        <button onclick="removeBodyParam(this)">×</button>
+    `;
+            container.appendChild(div);
+        }
+
+        function removeBodyParam(button) {
+            button.parentElement.remove();
+        }
+
+        function getBodyParams() {
+            const params = {};
+            const rows = document.querySelectorAll('.body-param-row');
+            rows.forEach(row => {
+                const name = row.querySelector('.body-param-name').value;
+                const value = row.querySelector('.body-param-value').value;
+                if (name) {
+                    params[name] = value;
+                }
+            });
+            return params;
+        }
 
         // Добавление полей для query параметров
         function addQueryParams() {
@@ -436,10 +474,20 @@
                 }
             }
 
+            // Собираем параметры тела из формы
+            const bodyParams = {};
+            const bodyInputs = document.querySelectorAll('.body-param');
+            bodyInputs.forEach(input => {
+                if (input.name && input.value) {
+                    bodyParams[input.name] = input.value;
+                }
+            });
+
             const mockRequest = {
                 Path: path,
                 Method: method,
                 QueryParams: queryParams,
+                BodyParameters: bodyParams,
                 Response: {
                     StatusCode: statusCode,
                     Body: responseBody,
