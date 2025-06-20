@@ -45,6 +45,15 @@ function openEditModal(mockId) {
                 });
             }
 
+            // Заполняем body params (body params заполняются функцией addQueryParamsWithValues)
+            const bodyParamsDiv = document.getElementById('editBodyParams');
+            bodyParamsDiv.innerHTML = '';
+            if (mock.BodyParameters) {
+                Object.entries(mock.BodyParameters).forEach(([key, value]) => {
+                    addBodyParamsWithValues(key, value);
+                });
+            }
+
             // Открываем модальное окно
             modal.style.display = 'block';
         })

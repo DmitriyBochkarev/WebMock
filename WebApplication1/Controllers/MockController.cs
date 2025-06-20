@@ -375,6 +375,7 @@ namespace WebApplication1.Controllers
                 mock.Method,
                 mock.Path,
                 QueryParameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(mock.QueryParameters ?? "{}"),
+                BodyParameters = JsonConvert.DeserializeObject<JObject>(mock.BodyParameters ?? "{}"),
                 Response = new
                 {
                     mock.Response.StatusCode,
