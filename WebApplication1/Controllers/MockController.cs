@@ -333,7 +333,9 @@ namespace WebApplication1.Controllers
                     existingRequest.Path = requestDto.Path;
                     existingRequest.Method = requestDto.Method;
                     existingRequest.QueryParameters = JsonConvert.SerializeObject(requestDto.QueryParams ?? new Dictionary<string, string>());
-                    existingRequest.BodyParameters = JsonConvert.SerializeObject(requestDto.BodyParameters);
+                    existingRequest.BodyParameters = requestDto.BodyParameters != null
+            ? JsonConvert.SerializeObject(requestDto.BodyParameters)
+            : null;
 
 
 
