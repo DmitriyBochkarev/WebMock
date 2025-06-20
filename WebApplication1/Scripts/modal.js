@@ -100,7 +100,7 @@ function saveMock() {
     }
 
     // Собираем параметры тела запроса
-    const bodyParams = {};
+    const bodyParams = null;
     const bodParams = document.getElementById('editBodyParams').children;
     for (let row of bodParams) {
         const key1 = row.children[0].value;

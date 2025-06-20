@@ -233,6 +233,8 @@ namespace WebApplication1.Controllers
                     Path = r.Path,
                     QueryParameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(
                             r.QueryParameters ?? "{}"),
+                    BodyParameters = JsonConvert.DeserializeObject<JObject>(
+                            r.BodyParameters ?? "{}"),
                     Response = new
                     {
                         r.Response.StatusCode,
