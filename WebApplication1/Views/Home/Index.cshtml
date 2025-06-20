@@ -227,15 +227,13 @@
                     </div>
                     <button type="button" onclick="addQueryParams()">+</button>
                 </div>
-                <label>Параметры тела:</label>
-                <div id="bodyParams">
-                    <div class="body-param-row">
-                        <input type="text" class="body-param-name" placeholder="Ключ">
-                        <input type="text" class="body-param-value" placeholder="Значение">
-                        <button onclick="removeBodyParam(this)">×</button>
+                <div id="bodyParamsContainer">
+                    <h3>bodyParams</h3>
+                    <div id="bodyParams">
+                        <!-- Параметры будут добавляться здесь -->
                     </div>
+                    <button type="button" onclick="addBodyParam()">+</button>
                 </div>
-                <button onclick="addBodyParam()">+ Добавить параметр</button>
                 </br>
                 <div id="formContainer">
 
@@ -474,14 +472,15 @@
                 }
             }
 
-            // Собираем параметры тела из формы
             const bodyParams = {};
-            const bodyInputs = document.querySelectorAll('.body-param');
-            bodyInputs.forEach(input => {
-                if (input.name && input.value) {
-                    bodyParams[input.name] = input.value;
+            const bodParams = document.getElementById('bodyParams').children;
+            for (let row of bodParams) {
+                const key = row.children[0].value;
+                const value = row.children[1].value;
+                if (key && value) {
+                    bodyParams[key] = value;
                 }
-            });
+            }
 
             const mockRequest = {
                 Path: path,
