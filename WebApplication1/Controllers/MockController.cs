@@ -331,9 +331,9 @@ namespace WebApplication1.Controllers
                     existingRequest.Path = requestDto.Path;
                     existingRequest.Method = requestDto.Method;
                     existingRequest.QueryParameters = JsonConvert.SerializeObject(requestDto.QueryParams ?? new Dictionary<string, string>());
+                    existingRequest.BodyParameters = JsonConvert.SerializeObject(requestDto.BodyParameters);
 
 
-                    
 
                     // Обновляем данные ответа
                     existingRequest.Response.StatusCode = requestDto.Response.StatusCode;

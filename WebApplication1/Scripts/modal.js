@@ -99,6 +99,17 @@ function saveMock() {
         }
     }
 
+    // Собираем параметры тела запроса
+    const bodyParams = {};
+    const bodParams = document.getElementById('editBodyParams').children;
+    for (let row of bodParams) {
+        const key1 = row.children[0].value;
+        const value1 = row.children[1].value;
+        if (key1 && value1) {
+            bodyParams[key1] = value1;
+        }
+    }
+
     fetch(`webmocks/mock/update/${id}`, {
         method: 'PUT',
         headers: {
@@ -108,6 +119,7 @@ function saveMock() {
             Path: path,
             Method: method,
             QueryParams: queryParams,
+            BodyParameters: bodyParams,
             Response: {
                 StatusCode: statusCode,
                 Body: responseBody,
