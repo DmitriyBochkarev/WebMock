@@ -100,15 +100,20 @@ function saveMock() {
     }
 
     // Собираем параметры тела запроса
-    bodyParams = null;
+    bodyParams = {};
     const bodParams = document.getElementById('editBodyParams').children;
     for (let row of bodParams) {
         const key1 = row.children[0].value;
         const value1 = row.children[1].value;
         if (key1 && value1) {
-            bodyParams = {};
+            
             bodyParams[key1] = value1;
         }
+    }
+
+    // Если нужен null при отсутствии параметров
+    if (Object.keys(bodyParams).length === 0) {
+        bodyParams = null;
     }
 
     fetch(`webmocks/mock/update/${id}`, {

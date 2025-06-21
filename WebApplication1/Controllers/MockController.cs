@@ -336,7 +336,9 @@ namespace WebApplication1.Controllers
                     existingRequest.BodyParameters = requestDto.BodyParameters != null
             ? JsonConvert.SerializeObject(requestDto.BodyParameters)
             : null;
-
+                    string setBodyParameters = requestDto.BodyParameters != null
+            ? JsonConvert.SerializeObject(requestDto.BodyParameters)
+            : null;
 
 
                     // Обновляем данные ответа
@@ -349,7 +351,10 @@ namespace WebApplication1.Controllers
                     _db.SaveChanges();
                     transaction.Commit();
 
-                    return Ok(new { Success = true, Message = $"Mock updated successfully {JsonConvert.SerializeObject(requestDto.QueryParams)}" }); ;
+                    return Ok(new { Success = true, Message = $"Заглушка успешно обновлена " +
+                        $"{setBodyParameters}" +
+                    //$"{JsonConvert.SerializeObject(requestDto.QueryParams)}" +
+                    $"" }); ;
                 }
                 catch (Exception ex)
                 {
