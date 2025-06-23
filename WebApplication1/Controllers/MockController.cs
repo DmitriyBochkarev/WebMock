@@ -10,6 +10,10 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using WebApplication1.Models;
+using System.Xml.Linq;
+using System.Xml;
+using System.Text;
+
 
 namespace WebApplication1.Controllers
 {
@@ -179,20 +183,40 @@ namespace WebApplication1.Controllers
 
             if (mockRequest != null)
             {
-                // Десериализация тела ответа, если оно в формате JSON
-                object responseBody;
-                try
-                {
-                    responseBody = JsonConvert.DeserializeObject(mockRequest.Response.Body);
-                }
-                catch
-                {
-                    responseBody = mockRequest.Response.Body;
-                }
+                // Определяем формат ответа
+                bool isXml = 
+                            mockRequest.Response.Body.TrimStart().StartsWith("<");
 
-                var response = Request.CreateResponse(
-                    (HttpStatusCode)mockRequest.Response.StatusCode,
-                    responseBody);
+                // Создаём базовый ответ
+                var response = new HttpResponseMessage((HttpStatusCode)mockRequest.Response.StatusCode);
+
+                // Обрабатываем тело ответа
+                if (isXml)
+                {
+                    // Для XML
+                    try
+                    {
+                        var xmlDoc = XDocument.Parse(mockRequest.Response.Body);
+                        response.Content = new StringContent(xmlDoc.ToString(), Encoding.UTF8, "application/xml");
+                    }
+                    catch
+                    {
+                        response.Content = new StringContent(mockRequest.Response.Body, Encoding.UTF8, "text/plain");
+                    }
+                }
+                else
+                {
+                    // Для JSON или plain text
+                    try
+                    {
+                        var json = JsonConvert.DeserializeObject(mockRequest.Response.Body);
+                        response.Content = new StringContent(JsonConvert.SerializeObject(json), Encoding.UTF8, "application/json");
+                    }
+                    catch
+                    {
+                        response.Content = new StringContent(mockRequest.Response.Body, Encoding.UTF8, "text/plain");
+                    }
+                }
 
                 var headers = JsonConvert.DeserializeObject<Dictionary<string, string>>(
                     mockRequest.Response.HeadersJson ?? "{}");
@@ -218,6 +242,8 @@ namespace WebApplication1.Controllers
                 ConfigureUrl = "/index.html"
             });
         }
+
+        
 
         [HttpGet]
         [Route("webmocks/mock/configurations")]
