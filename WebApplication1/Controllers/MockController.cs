@@ -31,46 +31,7 @@ namespace WebApplication1.Controllers
                 return BadRequest("Invalid request");
             }
             using (var transaction = _db.Database.BeginTransaction())
-            {
-                try
-                {
-                    // Сохраняем ответ
-                    var response = new MockResponse
-                    {
-                        StatusCode = requestDto.Response.StatusCode,
-                        Body = requestDto.Response.Body is string ?
-                        requestDto.Response.Body.ToString() :
-                        JsonConvert.SerializeObject(requestDto.Response.Body),
-                        Headers = requestDto.Response.Headers
-                    };
-                    // Сохраняем запрос
-                    var request = new MockRequest
-                    {
-                        Path = requestDto.Path,
-                        Method = requestDto.Method,
-                        QueryParams = requestDto.QueryParams ?? new Dictionary<string, string>(),
-                        MockResponseId = response.Id
-
-                    };
-                    // Находим запрос по методу и пути
-                    var mockRequest = _db.MockRequests
-                        .Include("Response") // Явная загрузка связанного Response
-                        .FirstOrDefault(r => r.Method == request.Method && r.Path == request.Path);
-
-                    if (mockRequest != null)
-                    {
-                        return BadRequest("Такая заглушка существует");
-
-                    }
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    return InternalServerError(ex);
-                }
-
-            }
-            using (var transaction2 = _db.Database.BeginTransaction())
+            
             {
                 try
                 {
@@ -107,12 +68,12 @@ namespace WebApplication1.Controllers
                     _db.MockRequests.Add(request);
                     _db.SaveChanges();
 
-                    transaction2.Commit();
+                    transaction.Commit();
                     return Ok();
                 }
                 catch (Exception ex)
                 {
-                    transaction2.Rollback();
+                    transaction.Rollback();
                     return InternalServerError(ex);
                 }
             }
@@ -428,6 +389,27 @@ namespace WebApplication1.Controllers
             }
             base.Dispose(disposing);
         }
+
+        // Конвертация XML в JObject (для сравнения с JSON-заглушкой)
+        private JObject ConvertXmlToJObject(XDocument xmlDoc)
+        {
+            var json = new JObject();
+
+            foreach (var element in xmlDoc.Root.Elements())
+            {
+                json.Add(element.Name.LocalName, element.Value);
+
+                // Обработка атрибутов
+                foreach (var attr in element.Attributes())
+                {
+                    json.Add($"@{attr.Name.LocalName}", attr.Value);
+                }
+            }
+
+            return json;
+        }
+
+
         private bool MatchBodyParameters(MockRequest mock, HttpRequestMessage request)
         {
             if (string.IsNullOrEmpty(mock.BodyParameters))
@@ -437,14 +419,27 @@ namespace WebApplication1.Controllers
             {
                 var requestBody = request.Content.ReadAsStringAsync().Result;
                 if (string.IsNullOrEmpty(requestBody))
-                    return false;
+                    return true;
 
-                var requestJson = JToken.Parse(requestBody);
+                //var requestJson = JToken.Parse(requestBody);
+                var requestJson = XDocument.Parse(requestBody);
+
                 var mockJson = mock.BodyParametersJson;
+
+                //foreach (var prop in mockJson.Properties())
+                //{
+                //    if (requestJson[prop.Name]?.ToString() != prop.Value.ToString())
+                //        return false;
+                //}
+
+                var requestXml = XDocument.Parse(requestBody);
+                var requestBodyJson = ConvertXmlToJObject(requestXml);
+
+                // Сравниваем все элементы
 
                 foreach (var prop in mockJson.Properties())
                 {
-                    if (requestJson[prop.Name]?.ToString() != prop.Value.ToString())
+                    if (requestBodyJson[prop.Name]?.ToString() != prop.Value.ToString())
                         return false;
                 }
 
