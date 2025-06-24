@@ -31,7 +31,7 @@ namespace WebApplication1.Controllers
                 return BadRequest("Invalid request");
             }
             using (var transaction = _db.Database.BeginTransaction())
-            
+
             {
                 try
                 {
@@ -62,7 +62,7 @@ namespace WebApplication1.Controllers
             : null,
                         MockResponseId = response.Id
                     };
-                    
+
 
 
                     _db.MockRequests.Add(request);
@@ -119,7 +119,7 @@ namespace WebApplication1.Controllers
             foreach (var mock in potentialMocks)
             {
                 bool matchbody = MatchBodyParameters(mock, requestBody);
-                
+
                 if (matchbody == true)
                 {
                     exactMatch = mock;
@@ -135,17 +135,23 @@ namespace WebApplication1.Controllers
 
 
 
-            // Если нет точного совпадения, ищем совпадение только по методу и пути
-            var mockRequest = exactMatch ?? _db.MockRequests
+            // Если нет точного совпадения, ищем совпадение только по методу и пути и квери параметрам
+            var mockRequestQ = exactMatch ?? _db.MockRequests
                 .Include("Response")
                 .FirstOrDefault(r => r.Method == method &&
                                    r.Path == path &&
-                                   string.IsNullOrEmpty(r.QueryParameters));
+                           r.QueryParameters == queryParamsDeserialize);
+
+            // Если нет точного совпадения, ищем совпадение только по методу и пути
+            var mockRequest = mockRequestQ ?? _db.MockRequests
+                .Include("Response")
+                .FirstOrDefault(r => r.Method == method &&
+                                   r.Path == path);
 
             if (mockRequest != null)
             {
                 // Определяем формат ответа
-                bool isXml = 
+                bool isXml =
                             mockRequest.Response.Body.TrimStart().StartsWith("<");
 
                 // Создаём базовый ответ
@@ -204,7 +210,7 @@ namespace WebApplication1.Controllers
             });
         }
 
-        
+
 
         [HttpGet]
         [Route("webmocks/mock/configurations")]
@@ -294,21 +300,21 @@ namespace WebApplication1.Controllers
         [Route("webmocks/mock/update/{id}")]
         public IHttpActionResult UpdateMock(int id, [FromBody] MockRequestDto requestDto)
         {
-            if (requestDto == null || string.IsNullOrEmpty(requestDto.Path) || requestDto.Response == null) 
+            if (requestDto == null || string.IsNullOrEmpty(requestDto.Path) || requestDto.Response == null)
             {
                 return BadRequest("Invalid request data");
             }
 
 
-            using (var transaction =  _db.Database.BeginTransaction())
+            using (var transaction = _db.Database.BeginTransaction())
             {
                 try
                 {
-                    
+
 
                     var existingRequest = _db.MockRequests
                         .Include("Response")
-                        .FirstOrDefault(r =>r.Id == id);
+                        .FirstOrDefault(r => r.Id == id);
 
                     if (existingRequest == null)
                     {
@@ -338,10 +344,14 @@ namespace WebApplication1.Controllers
                     _db.SaveChanges();
                     transaction.Commit();
 
-                    return Ok(new { Success = true, Message = $"Заглушка успешно обновлена " +
+                    return Ok(new
+                    {
+                        Success = true,
+                        Message = $"Заглушка успешно обновлена " +
                         $"{setBodyParameters}" +
                     //$"{JsonConvert.SerializeObject(requestDto.QueryParams)}" +
-                    $"" }); ;
+                    $""
+                    }); ;
                 }
                 catch (Exception ex)
                 {
@@ -350,7 +360,7 @@ namespace WebApplication1.Controllers
                 }
             }
 
-            
+
         }
         [HttpGet]
         [Route("webmocks/mock/configurations/{id}")]
@@ -413,41 +423,64 @@ namespace WebApplication1.Controllers
         private bool MatchBodyParameters(MockRequest mock, HttpRequestMessage request)
         {
             if (string.IsNullOrEmpty(mock.BodyParameters))
-                return true;
+                return false;
+            // Определяем формат ответа
+            bool isXml =
+                        mock.Response.Body.TrimStart().StartsWith("<");
 
-            try
+            var requestBody = request.Content.ReadAsStringAsync().Result;
+            if (string.IsNullOrEmpty(requestBody))
+                return false;
+
+            var mockJson = mock.BodyParametersJson;
+
+
+            if (isXml)
+
             {
-                var requestBody = request.Content.ReadAsStringAsync().Result;
-                if (string.IsNullOrEmpty(requestBody))
-                    return true;
-
-                //var requestJson = JToken.Parse(requestBody);
-                var requestJson = XDocument.Parse(requestBody);
-
-                var mockJson = mock.BodyParametersJson;
-
-                //foreach (var prop in mockJson.Properties())
-                //{
-                //    if (requestJson[prop.Name]?.ToString() != prop.Value.ToString())
-                //        return false;
-                //}
-
-                var requestXml = XDocument.Parse(requestBody);
-                var requestBodyJson = ConvertXmlToJObject(requestXml);
-
-                // Сравниваем все элементы
-
-                foreach (var prop in mockJson.Properties())
+                try
                 {
-                    if (requestBodyJson[prop.Name]?.ToString() != prop.Value.ToString())
-                        return false;
+
+                    var requestXml = XDocument.Parse(requestBody);
+                    var requestBodyJson = ConvertXmlToJObject(requestXml);
+
+                    // Сравниваем все элементы
+
+                    foreach (var prop in mockJson.Properties())
+                    {
+                        if (requestBodyJson[prop.Name]?.ToString() != prop.Value.ToString())
+                            return false;
+                    }
+
+                    return true;
                 }
 
-                return true;
+                catch
+                {
+                    return false;
+                }
             }
-            catch
+            else
             {
-                return false;
+                try
+                {
+                    var requestJson = JToken.Parse(requestBody);
+                    foreach (var prop in mockJson.Properties())
+                    {
+                        if (requestJson[prop.Name]?.ToString() != prop.Value.ToString())
+                            return false;
+                    }
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+
+
+
+
             }
         }
     }
