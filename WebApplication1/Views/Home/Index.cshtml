@@ -521,7 +521,7 @@
                 }
             }
 
-            const bodyParams = {};
+            let bodyParams = {};
             const bodParams = document.getElementById('bodyParams').children;
             for (let row of bodParams) {
                 const key1 = row.children[0].value;
@@ -530,6 +530,11 @@
 
                     bodyParams[key1] = value1;
                 }
+            }
+
+            // Если нужен null при отсутствии параметров
+            if (Object.keys(bodyParams).length === 0) {
+                bodyParams = null;
             }
 
             const mockRequest = {
@@ -558,7 +563,7 @@
                         return;
                     }
                     if (response.ok) {
-                        alert('Мок успешно настроен!' + bodyParams);
+                        alert('Заглушка успешно создана!' + JSON.stringify(mockRequest));
                         closeCreateModal();
                         refreshMocks();
                     } else {
