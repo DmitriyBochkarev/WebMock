@@ -521,14 +521,14 @@
                 }
             }
 
-            bodyParams = null;
+            const bodyParams = {};
             const bodParams = document.getElementById('bodyParams').children;
             for (let row of bodParams) {
-                const key = row.children[0].value;
-                const value = row.children[1].value;
-                if (key && value) {
-                    bodyParams = {}
-                    bodyParams[key] = value;
+                const key1 = row.children[0].value;
+                const value1 = row.children[1].value;
+                if (key1 && value1) {
+
+                    bodyParams[key1] = value1;
                 }
             }
 
@@ -558,7 +558,7 @@
                         return;
                     }
                     if (response.ok) {
-                        alert('Мок успешно настроен!');
+                        alert('Мок успешно настроен!' + bodyParams);
                         closeCreateModal();
                         refreshMocks();
                     } else {
