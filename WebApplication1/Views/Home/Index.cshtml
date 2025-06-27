@@ -114,7 +114,7 @@
     <script src="~/Scripts/modalcreate.js"></script>
 </head>
 <body>
-    
+
 
 
     <!-- <div class="container">
@@ -162,7 +162,7 @@
         <h2>Все заглушки</h2>
 
         <!--<button onclick="refreshMocks()">Обновить</button>
-    <button onclick="clearAllMocks()" style="background-color: #f44336;">Очистить все</button> -->
+        <button onclick="clearAllMocks()" style="background-color: #f44336;">Очистить все</button> -->
         </br>
         <table id="mocksTable">
             <thead>
@@ -204,7 +204,10 @@
 
                 <div class="form-group">
                     <label for="path">Путь:</label>
-                    <input type="text" id="path" placeholder="/api/resource">
+                    <input type="text" id="path" placeholder="api/resource">
+                    <p>Указывается только часть пути после https://host:port/webmocks/</p>
+                    <p>Пример заполнения: app</p>
+                    <p>Тогда путь к заглушке будет: https://host:port/webmocks/app</p>
                 </div>
                 <div class="form-group">
                     <label for="statusCode">Код статуса:</label>
@@ -355,29 +358,29 @@
 
         // Добавление полей для body параметров при редактировании
         function addEditBodyParams() {
-                const bodyParamsDiv = document.getElementById('editBodyParams');
-                const bodyParamDiv = document.createElement('div');
-                bodyParamDiv.className = 'header-row';
+            const bodyParamsDiv = document.getElementById('editBodyParams');
+            const bodyParamDiv = document.createElement('div');
+            bodyParamDiv.className = 'header-row';
 
-                const keyInput = document.createElement('input');
-                keyInput.type = 'text';
-                keyInput.placeholder = 'Имя query параметра';
+            const keyInput = document.createElement('input');
+            keyInput.type = 'text';
+            keyInput.placeholder = 'Имя query параметра';
 
-                const valueInput = document.createElement('input');
-                valueInput.type = 'text';
-                valueInput.placeholder = 'Значение query параметра';
+            const valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.placeholder = 'Значение query параметра';
 
-                const removeBtn = document.createElement('button');
-                removeBtn.textContent = 'X';
-                removeBtn.onclick = function () {
-                    bodyParamsDiv.removeChild(bodyParamDiv);
-                };
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = 'X';
+            removeBtn.onclick = function () {
+                bodyParamsDiv.removeChild(bodyParamDiv);
+            };
 
-                bodyParamDiv.appendChild(keyInput);
-                bodyParamDiv.appendChild(valueInput);
-                bodyParamDiv.appendChild(removeBtn);
-                bodyParamsDiv.appendChild(bodyParamDiv);
-            }
+            bodyParamDiv.appendChild(keyInput);
+            bodyParamDiv.appendChild(valueInput);
+            bodyParamDiv.appendChild(removeBtn);
+            bodyParamsDiv.appendChild(bodyParamDiv);
+        }
 
         // Добавление полей для query параметров
         function addQueryParams() {
@@ -578,7 +581,7 @@
         }
 
         // Обновление таблицы моков
-        function refreshMocks() {
+        function refreshMocks1() {
             fetch('/webmocks/mock/configurations')
                 .then(response => response.json())
                 .then(data => {
@@ -767,7 +770,7 @@
             headersDiv.appendChild(headerDiv);
         }
 
-        
+
 
         // Функция для добавления QueryParams с значениями
         function addQueryParamsWithValues(key, value) {
@@ -891,8 +894,165 @@
 
         }
 
+        // Глобальные переменные для пагинации
+        let currentPage = 1;
+        const itemsPerPage = 10; // Количество элементов на странице
+        let allMocksData = []; // Здесь будем хранить все данные
+
+        // Обновление таблицы моков с пагинацией
+        function refreshMocks(page = 1) {
+            fetch('/webmocks/mock/configurations')
+                .then(response => response.json())
+                .then(data => {
+                    allMocksData = [...data].reverse(); // Сохраняем все данные
+                    renderTable(page); // Рендерим таблицу для указанной страницы
+                    updatePaginationControls(); // Обновляем элементы управления пагинацией
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+        }
+
+        // Рендер таблицы для конкретной страницы
+        function renderTable(page) {
+            const tbody = document.querySelector('#mocksTable tbody');
+            tbody.innerHTML = '';
+
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = allMocksData.slice(startIndex, endIndex);
+
+            fetch('/webmocks/mock/configurations')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector('#mocksTable tbody');
+                    tbody.innerHTML = '';
+
+                    // Сортируем данные в обратном порядке (по ID или дате создания)
+                    const reversedData = [...data].reverse(); // Простое обращение массива
+
+                    pageData.forEach(item => {
+                        const row = document.createElement('tr');
+
+                        const methodCell = document.createElement('td');
+                        methodCell.textContent = item.Method;
+
+                        const pathCell = document.createElement('td');
+                        pathCell.textContent = item.Path;
+
+                        const queryParamsCell = document.createElement('td');
+                        queryParamsCell.textContent = item.QueryParameters
+                            ? Object.entries(item.QueryParameters).map(([k, v]) => `${k}: ${v}`).join(', ')
+                            : '';
+
+                        const bodyParamsCell = document.createElement('td');
+                        bodyParamsCell.textContent = item.BodyParameters
+                            ? Object.entries(item.BodyParameters).map(([k, v]) => `${k}: ${v}`).join(', ')
+                            : '';
+
+                        const statusCell = document.createElement('td');
+                        statusCell.textContent = item.Response.StatusCode;
+
+                        const responseCell = document.createElement('td');
+                        responseCell.textContent = typeof item.Response.Body === 'object'
+                            ? JSON.stringify(item.Response.Body)
+                            : item.Response.Body;
+
+                        const headersCell = document.createElement('td');
+                        headersCell.textContent = item.Response.Headers
+                            ? Object.entries(item.Response.Headers).map(([k, v]) => `${k}: ${v}`).join(', ')
+                            : '';
+
+                        row.appendChild(methodCell);
+                        row.appendChild(pathCell);
+                        row.appendChild(statusCell);
+                        row.appendChild(queryParamsCell);
+                        row.appendChild(bodyParamsCell);
+                        row.appendChild(responseCell);
+                        row.appendChild(headersCell);
+                        tbody.appendChild(row);
+                        const deleteCell = document.createElement('td');
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = 'X';
+                        deleteBtn.style.backgroundColor = '#f44336';
+                        deleteBtn.onclick = () => deleteMock(item.Id);
+                        deleteCell.appendChild(deleteBtn);
+                        row.appendChild(deleteCell);
+
+                        const editCell = document.createElement('td');
+                        const editBtn = document.createElement('button');
+                        editBtn.textContent = '✏️';
+                        editBtn.style.backgroundColor = '#444337';
+                        editBtn.onclick = () => openEditModal(item.Id);
+                        editCell.appendChild(editBtn);
+                        row.appendChild(editCell);
+                    });
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+        }
+
+        // Создание элементов управления пагинацией
+        function createPaginationControls() {
+            const paginationDiv = document.createElement('div');
+            paginationDiv.id = 'paginationControls';
+            paginationDiv.style.margin = '20px 0';
+            paginationDiv.style.display = 'flex';
+            paginationDiv.style.gap = '10px';
+            paginationDiv.style.alignItems = 'center';
+
+            const prevButton = document.createElement('button');
+            prevButton.textContent = 'Назад';
+            prevButton.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable(currentPage);
+                    updatePaginationControls();
+                }
+            };
+
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Вперед';
+            nextButton.onclick = () => {
+                if (currentPage < Math.ceil(allMocksData.length / itemsPerPage)) {
+                    currentPage++;
+                    renderTable(currentPage);
+                    updatePaginationControls();
+                }
+            };
+
+            const pageInfo = document.createElement('span');
+            pageInfo.id = 'pageInfo';
+
+            paginationDiv.appendChild(prevButton);
+            paginationDiv.appendChild(pageInfo);
+            paginationDiv.appendChild(nextButton);
+
+            // Добавляем пагинацию после таблицы
+            const table = document.querySelector('#mocksTable');
+            table.after(paginationDiv);
+        }
+
+        // Обновление состояния элементов управления
+        function updatePaginationControls() {
+            const totalPages = Math.ceil(allMocksData.length / itemsPerPage);
+            document.getElementById('pageInfo').textContent =
+                `Страница ${currentPage} из ${totalPages}`;
+
+            const prevButton = document.querySelector('#paginationControls button:first-child');
+            const nextButton = document.querySelector('#paginationControls button:last-child');
+
+            prevButton.disabled = currentPage === 1;
+            nextButton.disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+       
+
         // Инициализация
         document.addEventListener('DOMContentLoaded', function () {
+            //refreshMocks();
+            createPaginationControls();
             refreshMocks();
             addHeader(); // Добавляем один заголовок по умолчанию
             addQueryParams();
