@@ -167,6 +167,7 @@
         <table id="mocksTable">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Метод</th>
                     <th>Путь</th>
                     <th>Статус-код</th>
@@ -211,7 +212,7 @@
                 </div>
                 <div class="form-group">
                     <label for="statusCode">Код статуса:</label>
-                    <input type="number" id="statusCode" value="200">
+                    <input type="number" min="0" max="599" oninput="validateNumberInput(this)" id="statusCode" value="200">
                 </div>
                 <div class="form-group">
                     <label for="responseBody">Тело ответа:</label>
@@ -562,7 +563,7 @@
                 .then(response => {
                     // В функции configureMock()
                     if (path === "/" || path === "") {
-                        alert("Нельзя настроить мок для корневого пути. Используйте конкретные пути, например '/api/users'");
+                        alert("Нельзя настроить мок для корневого пути. Используйте конкретные пути, например 'api/users'");
                         return;
                     }
                     if (response.ok) {
@@ -934,6 +935,9 @@
                     pageData.forEach(item => {
                         const row = document.createElement('tr');
 
+                        const idCell = document.createElement('td');
+                        idCell.textContent = item.Id;
+
                         const methodCell = document.createElement('td');
                         methodCell.textContent = item.Method;
 
@@ -963,6 +967,7 @@
                             ? Object.entries(item.Response.Headers).map(([k, v]) => `${k}: ${v}`).join(', ')
                             : '';
 
+                        row.appendChild(idCell);
                         row.appendChild(methodCell);
                         row.appendChild(pathCell);
                         row.appendChild(statusCell);
@@ -1058,6 +1063,24 @@
             addQueryParams();
             addBodyParam();
         });
+
+        function validateNumberInput(input) {
+            // Получаем значение как число
+            let value = parseInt(input.value);
+
+            // Если значение больше 599, устанавливаем 599
+            if (value > 599) {
+                input.value = 599;
+            }
+                // Если значение отрицательное, очищаем поле
+            else if (value < 0) {
+                input.value = '';
+            }
+            // Если ввели не число, очищаем поле
+            else if (isNaN(value)) {
+                input.value = '';
+            }
+        }
     </script>
 </body>
     </html>
