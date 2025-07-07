@@ -173,7 +173,6 @@
                     <th>Статус-код</th>
                     <th>Query Params</th>
                     <th>Параметры тела запроса</th>
-                    <th>Тело ответа</th>
                     <th>Заголовки ответа</th>
                     <th>Удалить</th>
                     <th>Редактировать</th>
@@ -614,10 +613,10 @@
                         const statusCell = document.createElement('td');
                         statusCell.textContent = item.Response.StatusCode;
 
-                        const responseCell = document.createElement('td');
-                        responseCell.textContent = typeof item.Response.Body === 'object'
-                            ? JSON.stringify(item.Response.Body)
-                            : item.Response.Body;
+                        //const responseCell = document.createElement('td');
+                        //responseCell.textContent = typeof item.Response.Body === 'object'
+                        //    ? JSON.stringify(item.Response.Body)
+                        //    : item.Response.Body;
 
                         const headersCell = document.createElement('td');
                         headersCell.textContent = item.Response.Headers
@@ -629,7 +628,7 @@
                         row.appendChild(statusCell);
                         row.appendChild(queryParamsCell);
                         row.appendChild(bodyParamsCell);
-                        row.appendChild(responseCell);
+                        //row.appendChild(responseCell);
                         row.appendChild(headersCell);
                         tbody.appendChild(row);
                         const deleteCell = document.createElement('td');
@@ -957,10 +956,10 @@
                         const statusCell = document.createElement('td');
                         statusCell.textContent = item.Response.StatusCode;
 
-                        const responseCell = document.createElement('td');
-                        responseCell.textContent = typeof item.Response.Body === 'object'
-                            ? JSON.stringify(item.Response.Body)
-                            : item.Response.Body;
+                        //const responseCell = document.createElement('td');
+                        //responseCell.textContent = typeof item.Response.Body === 'object'
+                        //    ? JSON.stringify(item.Response.Body)
+                        //    : item.Response.Body;
 
                         const headersCell = document.createElement('td');
                         headersCell.textContent = item.Response.Headers
@@ -973,7 +972,7 @@
                         row.appendChild(statusCell);
                         row.appendChild(queryParamsCell);
                         row.appendChild(bodyParamsCell);
-                        row.appendChild(responseCell);
+                        //row.appendChild(responseCell);
                         row.appendChild(headersCell);
                         tbody.appendChild(row);
                         const deleteCell = document.createElement('td');
