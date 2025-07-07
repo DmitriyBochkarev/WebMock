@@ -26,7 +26,15 @@ namespace WebApplication1.Controllers
         [Route("webmocks/mock/configure")]
         public IHttpActionResult ConfigureMock([FromBody] MockRequestDto requestDto)
         {
-            if (requestDto == null || string.IsNullOrEmpty(requestDto.Path) || requestDto.Response == null)
+            if (requestDto == null 
+                || string.IsNullOrEmpty(requestDto.Path) 
+                || requestDto.Response == null 
+                || requestDto.Path == "mock/configure" 
+                || requestDto.Path == "mock/configurations"
+                || requestDto.Path == "mock/clear"
+                || requestDto.Path == "mock/delete/{id}"
+                || requestDto.Path == "mock/update/{id}"
+                || requestDto.Path == "mock/configurations/{id}")
             {
                 return BadRequest("Invalid request");
             }

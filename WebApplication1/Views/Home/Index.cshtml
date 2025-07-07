@@ -561,8 +561,19 @@
             })
                 .then(response => {
                     // В функции configureMock()
-                    if (path === "/" || path === "") {
-                        alert("Нельзя настроить мок для корневого пути. Используйте конкретные пути, например 'api/users'");
+                    if (path === "/"
+                        || path === ""
+                        || path === "mock/configure"
+                        || path === "mock/configurations"
+                        || path === "mock/clear"
+                        || /^mock\/delete\/\d+$/.test(path) ||  // Число после delete/
+                            /^mock\/update\/\d+$/.test(path) ||  // Число после update/
+                            /^mock\/configurations\/\d+$/.test(path) // Число после configurations/
+                    ) {
+                        alert("Нельзя настроить мок для корневого или зарезервированного пути. \
+                        Используйте конкретные пути, например 'api/users'.Перечень зарезервированных путей: \
+                        mock/configure, \
+                        mock/configurations");
                         return;
                     }
                     if (response.ok) {
