@@ -571,9 +571,13 @@
                             /^mock\/configurations\/\d+$/.test(path) // Число после configurations/
                     ) {
                         alert("Нельзя настроить мок для корневого или зарезервированного пути. \
-                        Используйте конкретные пути, например 'api/users'.Перечень зарезервированных путей: \
-                        mock/configure, \
-                        mock/configurations");
+Используйте конкретные пути, например 'api/users'.Перечень зарезервированных путей: \
+mock/configure,\
+mock/configurations,\
+mock/clear,\
+mock/delete/(любой числовой ID)\
+mock/update/(любой числовой ID)\
+mock/configurations/(любой числовой ID)");
                         return;
                     }
                     if (response.ok) {
