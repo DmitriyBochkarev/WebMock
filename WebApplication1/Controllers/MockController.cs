@@ -111,6 +111,12 @@ namespace WebApplication1.Controllers
         .ToDictionary(kv => kv.Key, kv => kv.Value);
             var queryParamsDeserialize = JsonConvert.SerializeObject(queryParams);
 
+            // Определяем формат тела запроса
+            var requestBody1 = Request.Content.ReadAsStringAsync().Result;
+            bool isXml1 =
+                        requestBody1.TrimStart().StartsWith("<");
+            var requestXml1 = XDocument.Parse(requestBody1);
+            var requestBodyJson = ConvertXmlToJObject(requestXml1);
             // Читаем тело запроса
             var requestBody = Request;
 
@@ -120,41 +126,44 @@ namespace WebApplication1.Controllers
                 .Where(r => r.Method == method && r.Path == path)
                 .ToList(); // Материализуем запрос
 
-            var exactMatch = potentialMocks.FirstOrDefault(r =>
-                MatchBodyParameters(r, requestBody) &&
+            var mockRequest = potentialMocks.FirstOrDefault(r =>
+                MatchBodyParameters(r, requestBody1) &&
                            r.QueryParameters == queryParamsDeserialize);
+
+            var potentialMocksBool = "";
 
             foreach (var mock in potentialMocks)
             {
-                bool matchbody = MatchBodyParameters(mock, requestBody);
+                bool matchbody = MatchBodyParameters(mock, requestBody1);
 
                 if (matchbody == true)
                 {
-                    exactMatch = mock;
+                    mockRequest = mock;
                 }
                 else
                 {
-                    exactMatch = potentialMocks.FirstOrDefault(r =>
-                MatchBodyParameters(r, requestBody) &&
+                    mockRequest = potentialMocks.FirstOrDefault(r =>
+                MatchBodyParameters(r, requestBody1) &&
                            r.QueryParameters == queryParamsDeserialize);
                 }
+                potentialMocksBool = potentialMocksBool + matchbody.ToString();
             }
 
 
 
 
             // Если нет точного совпадения, ищем совпадение только по методу и пути и квери параметрам
-            var mockRequestQ = exactMatch ?? _db.MockRequests
-                .Include("Response")
-                .FirstOrDefault(r => r.Method == method &&
-                                   r.Path == path &&
-                           r.QueryParameters == queryParamsDeserialize);
+            //var mockRequestQ = exactMatch ?? _db.MockRequests
+            //    .Include("Response")
+            //    .FirstOrDefault(r => r.Method == method &&
+            //                       r.Path == path &&
+            //               r.QueryParameters == queryParamsDeserialize);
 
             // Если нет точного совпадения, ищем совпадение только по методу и пути
-            var mockRequest = mockRequestQ ?? _db.MockRequests
-                .Include("Response")
-                .FirstOrDefault(r => r.Method == method &&
-                                   r.Path == path);
+            //var mockRequest = mockRequestQ ?? _db.MockRequests
+            //    .Include("Response")
+            //    .FirstOrDefault(r => r.Method == method &&
+            //                       r.Path == path);
 
             if (mockRequest != null)
             {
@@ -207,6 +216,11 @@ namespace WebApplication1.Controllers
 
                 return response;
             }
+            var requestBody2 = Request.Content.ReadAsStringAsync().Result;
+
+            var requestXml2 = XDocument.Parse(requestBody2);
+            var requestBodyJson2 = ConvertXmlToJObject(requestXml2);
+
 
             return Request.CreateResponse(HttpStatusCode.NotFound, new
             {
@@ -214,7 +228,15 @@ namespace WebApplication1.Controllers
                 Path = path,
                 Method = method,
                 QueryParameters = queryParams,
-                ConfigureUrl = "/index.html"
+                ConfigureUrl = "/index.html",
+                PotentialMocksBool = potentialMocksBool,
+                Requestxml1 = requestXml1,
+                RequestBody = requestBody2,
+                Requestxml = requestXml2,
+                RequestBodyJson1 = requestBodyJson,
+                RequestBodyJson = requestBodyJson2,
+                MockRequest = mockRequest,
+            PotentialMocks = potentialMocks
             });
         }
 
@@ -428,7 +450,7 @@ namespace WebApplication1.Controllers
         }
 
 
-        private bool MatchBodyParameters(MockRequest mock, HttpRequestMessage request)
+        private bool MatchBodyParameters(MockRequest mock, string request)
         {
             if (string.IsNullOrEmpty(mock.BodyParameters))
                 return false;
@@ -436,9 +458,11 @@ namespace WebApplication1.Controllers
             bool isXml =
                         mock.Response.Body.TrimStart().StartsWith("<");
 
-            var requestBody = request.Content.ReadAsStringAsync().Result;
-            if (string.IsNullOrEmpty(requestBody))
+            //var requestBody = request.Content.ReadAsStringAsync().Result;
+            if (string.IsNullOrEmpty(request))
                 return false;
+
+            //if (isXml && requestBody.TrimStart().StartsWith("<")) { }
 
             var mockJson = mock.BodyParametersJson;
 
@@ -449,7 +473,7 @@ namespace WebApplication1.Controllers
                 try
                 {
 
-                    var requestXml = XDocument.Parse(requestBody);
+                    var requestXml = XDocument.Parse(request);
                     var requestBodyJson = ConvertXmlToJObject(requestXml);
 
                     // Сравниваем все элементы
@@ -472,7 +496,7 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    var requestJson = JToken.Parse(requestBody);
+                    var requestJson = JToken.Parse(request);
                     foreach (var prop in mockJson.Properties())
                     {
                         if (requestJson[prop.Name]?.ToString() != prop.Value.ToString())
