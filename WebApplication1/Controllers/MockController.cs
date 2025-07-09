@@ -126,7 +126,7 @@ namespace WebApplication1.Controllers
                 .Where(r => r.Method == method && r.Path == path)
                 .ToList(); // Материализуем запрос
 
-            var mockRequest = potentialMocks.FirstOrDefault(r =>
+            var exactMatch = potentialMocks.FirstOrDefault(r =>
                 MatchBodyParameters(r, requestBody1) &&
                            r.QueryParameters == queryParamsDeserialize);
 
@@ -138,32 +138,32 @@ namespace WebApplication1.Controllers
 
                 if (matchbody == true)
                 {
-                    mockRequest = mock;
+                    exactMatch = mock;
                 }
                 else
                 {
-                    mockRequest = potentialMocks.FirstOrDefault(r =>
+                    exactMatch = potentialMocks.FirstOrDefault(r =>
                 MatchBodyParameters(r, requestBody1) &&
                            r.QueryParameters == queryParamsDeserialize);
                 }
-                potentialMocksBool = potentialMocksBool + matchbody.ToString();
+                potentialMocksBool = potentialMocksBool +","+ matchbody.ToString();
             }
 
 
 
 
-            // Если нет точного совпадения, ищем совпадение только по методу и пути и квери параметрам
-            //var mockRequestQ = exactMatch ?? _db.MockRequests
-            //    .Include("Response")
-            //    .FirstOrDefault(r => r.Method == method &&
-            //                       r.Path == path &&
-            //               r.QueryParameters == queryParamsDeserialize);
+            //Если нет точного совпадения, ищем совпадение только по методу и пути и квери параметрам
+           var mockRequestQ = exactMatch ?? _db.MockRequests
+               .Include("Response")
+               .FirstOrDefault(r => r.Method == method &&
+                                  r.Path == path &&
+                          r.QueryParameters == queryParamsDeserialize);
 
-            // Если нет точного совпадения, ищем совпадение только по методу и пути
-            //var mockRequest = mockRequestQ ?? _db.MockRequests
-            //    .Include("Response")
-            //    .FirstOrDefault(r => r.Method == method &&
-            //                       r.Path == path);
+            //Если нет точного совпадения, ищем совпадение только по методу и пути
+            var mockRequest = mockRequestQ ?? _db.MockRequests
+                .Include("Response")
+                .FirstOrDefault(r => r.Method == method &&
+                                   r.Path == path);
 
             if (mockRequest != null)
             {
